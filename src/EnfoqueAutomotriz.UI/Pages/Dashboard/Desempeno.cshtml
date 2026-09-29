@@ -1,0 +1,194 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.Dashboard.DesempenoModel
+@using EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Desempeño Individual";
+}
+
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="text-xl font-bold text-text-1">Desempeño Individual</h2>
+        <p class="text-text-3 text-sm">Radar de fortalezas y áreas de mejora por técnico, comparado contra el promedio del equipo.</p>
+    </div>
+    <form method="get" class="flex items-center gap-2">
+        <select name="empleadoId" onchange="this.form.submit()" class="h-9 px-3 rounded-lg border border-border-ui text-sm min-w-[220px]">
+            @foreach (var t in Model.Tecnicos)
+            {
+                <option value="@t.Id" selected="@(Model.EmpleadoId == t.Id)">@t.Nombre @(t.Puesto != null ? $"— {t.Puesto}" : "")</option>
+            }
+        </select>
+    </form>
+</div>
+
+<partial name="_Ayuda" model="@(new AyudaModel {
+    PaginaId = "dashboard-desempeno",
+    Titulo = "¿Qué muestra esta pantalla?",
+    QueHace = "Ficha de desempeño individual de un técnico o mecánico: un radar con 8 dimensiones (puntualidad, velocidad, satisfacción, productividad, retrabajos, calidad, especialidades y capacitación) comparado contra el promedio del equipo.",
+    Pasos = new List<PasoAyuda> {
+        new(1, "Selecciona el técnico que quieres analizar en el selector de arriba."),
+        new(2, "El radar morado es el técnico, el gris punteado es el promedio del equipo — donde el morado quede por debajo, es un área de mejora."),
+        new(3, "Las tarjetas de 'Fortalezas' y 'Áreas de mejora' resumen automáticamente esa comparación."),
+        new(4, "Usa 'Detalle numérico' para ver los datos crudos detrás de cada eje (órdenes, retrabajos, cursos, etc.).")
+    },
+    Conexiones = new List<ConexionAyuda> {
+        new("Capacitación", "/RH/Capacitacion/Index", "graduation-cap", "Asignar cursos para reforzar un área de mejora"),
+        new("Dashboard de Calidad", "/Dashboard/Calidad", "shield-check", "Ver el detalle de retrasos que alimenta este radar")
+    },
+    Alertas = new List<string> {
+        "Los ejes se calculan con datos reales de órdenes atendidas; si el técnico tiene pocas órdenes o no tiene cursos asignados, algunos ejes pueden mostrarse en 0 por falta de historial, no porque su desempeño sea malo."
+    }
+})" />
+
+@if (Model.Tecnicos.Count == 0)
+{
+    <div class="alert alert-error">No hay técnicos/mecánicos registrados todavía.</div>
+}
+else if (Model.Data == null)
+{
+    <div class="alert alert-error">No se pudo cargar el desempeño de este empleado.</div>
+}
+else
+{
+    var d = Model.Data;
+    var e = d.Ejes;
+    var p = d.PromedioEquipo;
+
+    <div class="card card-body mb-4 stagger-in">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-full text-white flex items-center justify-center font-bold text-lg shadow-md"
+                 style="background: linear-gradient(135deg, #4F46E5, #8B5CF6);">
+                @(d.Empleado.Nombre.Length > 0 ? d.Empleado.Nombre[0].ToString().ToUpper() : "?")
+            </div>
+            <div>
+                <p class="font-semibold text-text-1">@d.Empleado.Nombre</p>
+                <p class="text-xs text-text-3">@d.Empleado.Puesto @(d.Empleado.Sucursal != null ? $"· {d.Empleado.Sucursal}" : "")</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        <div class="lg:col-span-2 chart-card stagger-in">
+            <h3 class="font-semibold text-text-1 mb-3 flex items-center gap-2"><i data-lucide="radar" class="w-4 h-4 text-primary"></i> Radar de desempeño</h3>
+            <canvas id="chartRadar" height="280"></canvas>
+        </div>
+
+        <div class="card card-body stagger-in">
+            <h3 class="font-semibold text-text-1 mb-2 flex items-center gap-1.5"><i data-lucide="thumbs-up" class="w-4 h-4 text-emerald-600"></i> Fortalezas</h3>
+            <div id="fortalezas" class="flex flex-wrap gap-1.5 mb-4"></div>
+
+            <h3 class="font-semibold text-text-1 mb-2 flex items-center gap-1.5"><i data-lucide="target" class="w-4 h-4 text-red-600"></i> Áreas de mejora</h3>
+            <div id="areasMejora" class="flex flex-wrap gap-1.5"></div>
+        </div>
+    </div>
+
+    <div class="card card-body stagger-in">
+        <h3 class="font-semibold text-text-1 mb-3">Detalle numérico</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+            <div>
+                <p class="text-[11px] text-text-3 uppercase">Órdenes atendidas</p>
+                <p class="font-medium">@d.Detalle.TotalOrdenes (@d.Detalle.Entregadas entregadas, @d.Detalle.Canceladas canceladas)</p>
+            </div>
+            <div>
+                <p class="text-[11px] text-text-3 uppercase">Duración promedio</p>
+                <p class="font-medium">@(d.Detalle.DuracionPromedioHoras.HasValue ? $"{Math.Round(d.Detalle.DuracionPromedioHoras.Value / 24, 1)} días" : "Sin datos") <span class="text-text-3 text-xs">(equipo: @(d.Detalle.DuracionPromedioGeneralHoras.HasValue ? $"{Math.Round(d.Detalle.DuracionPromedioGeneralHoras.Value / 24, 1)} días" : "—"))</span></p>
+            </div>
+            <div>
+                <p class="text-[11px] text-text-3 uppercase">Retrabajos (mismo vehículo &lt;15 días)</p>
+                <p class="font-medium">@d.Detalle.RetrabajosCantidad de @d.Detalle.Entregadas entregas</p>
+            </div>
+            <div>
+                <p class="text-[11px] text-text-3 uppercase">Especialidades atendidas</p>
+                <p class="font-medium">@d.Detalle.EspecialidadesDistintas de @d.Detalle.TotalEspecialidadesActivas</p>
+            </div>
+            <div>
+                <p class="text-[11px] text-text-3 uppercase">Cursos completados</p>
+                <p class="font-medium">@d.Detalle.CursosCompletados de @d.Detalle.CursosTotales asignados</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="~/js/chart-theme.js" asp-append-version="true"></script>
+    <script>
+        const ejes = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(e, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+        const promedioEquipo = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(p, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+        const T = window.ChartTheme;
+
+        const labels = {
+            puntualidad: 'Puntualidad', velocidad: 'Velocidad', satisfaccion: 'Satisfacción',
+            productividad: 'Productividad', retrabajos: 'Retrabajos', calidad: 'Calidad',
+            especialidades: 'Especialidades', capacitacion: 'Capacitación'
+        };
+        const claves = Object.keys(labels);
+
+        const ctxRadar = document.getElementById('chartRadar');
+        new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: claves.map(k => labels[k]),
+                datasets: [
+                    {
+                        label: '@(d.Empleado.Nombre)',
+                        data: claves.map(k => ejes[k] ?? 0),
+                        borderColor: T.colors.primary,
+                        backgroundColor: function (context) {
+                            const chart = context.chart;
+                            const { ctx, chartArea } = chart;
+                            if (!chartArea) return T.colors.primarySoft;
+                            return T.gradient(ctx, chartArea, 'rgba(79,70,229,0.45)', 'rgba(79,70,229,0.05)');
+                        },
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: T.colors.primary,
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 8,
+                        pointHoverBackgroundColor: T.colors.primary,
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2
+                    },
+                    {
+                        label: 'Promedio del equipo',
+                        data: claves.map(k => promedioEquipo[k] ?? 0),
+                        borderColor: T.colors.slate,
+                        backgroundColor: 'rgba(148,163,184,0.10)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: T.colors.slate,
+                        pointBorderWidth: 2,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        borderDash: [5, 4]
+                    }
+                ]
+            },
+            options: T.radarOptions()
+        });
+
+        // ── Fortalezas / Áreas de mejora: comparación contra el promedio del equipo ──
+        const fortalezasEl = document.getElementById('fortalezas');
+        const areasMejoraEl = document.getElementById('areasMejora');
+        const fortalezas = [];
+        const areas = [];
+
+        claves.forEach(k => {
+            const valor = ejes[k];
+            const promedio = promedioEquipo[k];
+            if (valor === null || valor === undefined) return;
+            if (promedio === null || promedio === undefined) return;
+            if (valor >= promedio) fortalezas.push({ nombre: labels[k], valor }); else areas.push({ nombre: labels[k], valor, promedio });
+        });
+
+        if (fortalezas.length === 0) {
+            fortalezasEl.innerHTML = '<span class="text-xs text-text-3">Sin datos suficientes todavía.</span>';
+        } else {
+            fortalezasEl.innerHTML = fortalezas.map(f => '<span class="badge bg-emerald-100 text-emerald-700">✓ ' + f.nombre + ' (' + f.valor + '%)</span>').join('');
+        }
+
+        if (areas.length === 0) {
+            areasMejoraEl.innerHTML = '<span class="text-xs text-text-3">Ninguna por debajo del promedio del equipo. 🎉</span>';
+        } else {
+            areasMejoraEl.innerHTML = areas.map(a => '<span class="badge bg-red-100 text-red-700" title="Promedio del equipo: ' + a.promedio + '%">⚠ ' + a.nombre + ' (' + a.valor + '%)</span>').join('');
+        }
+    </script>
+}

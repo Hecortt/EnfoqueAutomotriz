@@ -1,0 +1,69 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.SaasAdmin.IndexModel
+@{
+    ViewData["Title"] = "SaaS Admin";
+}
+
+<h2 class="text-xl font-bold text-text-1 mb-1">Administración SaaS</h2>
+<p class="text-text-3 text-sm mb-4">
+    Talleres (tenants) registrados en la plataforma. Cambia el plan de un tenant y observa
+    cómo aparecen/desaparecen módulos en su sidebar sin necesidad de otro sistema.
+</p>
+
+@if (!string.IsNullOrEmpty(Model.Mensaje))
+{
+    <div class="alert alert-success mb-4">@Model.Mensaje</div>
+}
+
+<div class="card">
+    <table class="w-full text-sm">
+        <thead class="bg-base text-text-3 text-xs uppercase">
+            <tr>
+                <th class="text-left px-2.5 py-1.5">Taller</th>
+                <th class="text-left px-2.5 py-1.5">Slug</th>
+                <th class="text-left px-2.5 py-1.5">Plan actual</th>
+                <th class="text-left px-2.5 py-1.5">Estado</th>
+                <th class="text-left px-2.5 py-1.5">Features activos</th>
+                <th class="text-left px-2.5 py-1.5">Cambiar plan</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var t in Model.Tenants)
+            {
+                var (bg, label) = t.Plan switch
+                {
+                    "basico" => ("bg-slate-100 text-slate-700", "Básico"),
+                    "multiespecialidad" => ("bg-blue-100 text-blue-700", "Multiespecialidad"),
+                    _ => ("bg-violet-100 text-violet-700", "Enterprise")
+                };
+                <tr class="border-t border-border-ui hover:bg-base/60 transition-colors">
+                    <td class="px-2.5 py-1.5 font-medium">@t.NombreComercial</td>
+                    <td class="px-2.5 py-1.5 text-text-3">@t.Slug</td>
+                    <td class="px-2.5 py-1.5"><span class="badge @bg">@label</span></td>
+                    <td class="px-2.5 py-1.5">
+                        @if (t.Estado == "activo")
+                        {
+                            <span class="badge bg-emerald-100 text-emerald-700">Activo</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-red-100 text-red-700">@t.Estado</span>
+                        }
+                    </td>
+                    <td class="px-2.5 py-1.5">@t.FeaturesActivos</td>
+                    <td class="px-2.5 py-1.5">
+                        <form method="post" class="flex gap-1">
+                            <input type="hidden" name="Slug" value="@t.Slug" />
+                            <select name="NuevoPlan" class="h-8 px-2 rounded border border-border-ui text-xs">
+                                <option value="basico" selected="@(t.Plan == "basico")">Básico</option>
+                                <option value="multiespecialidad" selected="@(t.Plan == "multiespecialidad")">Multiespecialidad</option>
+                                <option value="enterprise" selected="@(t.Plan == "enterprise")">Enterprise</option>
+                            </select>
+                            <button type="submit" class="btn bg-primary text-white text-xs h-8">Aplicar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

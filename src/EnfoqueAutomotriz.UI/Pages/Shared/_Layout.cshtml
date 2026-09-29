@@ -1,0 +1,307 @@
+@inject EnfoqueAutomotriz.UI.Services.IEmpresaContextService _empresaCtx
+@inject EnfoqueAutomotriz.UI.Services.IFeatureFlagService _featureFlagsSvc
+@inject EnfoqueAutomotriz.UI.Services.ITenantInfoService _tenantInfoSvc
+@{
+    var _empresa = await _empresaCtx.GetAsync();
+    var _logo = _empresa.LogoUrl != null ? EnfoqueAutomotriz.UI.Helpers.FotoUrlHelper.ToProxy(_empresa.LogoUrl) : null;
+
+    var esSuperAdmin = User.IsInRole("0");
+    var esAdminTaller = User.IsInRole("1");
+    var esMecanico = User.IsInRole("2");
+    var esRecepcionista = User.IsInRole("3");
+    var esFacturacion = User.IsInRole("5");
+    var esSoporteIT = User.IsInRole("6");
+    var accesoTotal = esSuperAdmin || esAdminTaller || esSoporteIT;
+
+    var featuresActivos = User.Identity?.IsAuthenticated == true ? await _featureFlagsSvc.GetActivosAsync() : [];
+    bool TieneFeature(string f) => featuresActivos.Count == 0 || featuresActivos.Contains(f);
+    bool fAlmacen = TieneFeature("inventario_refacciones");
+    bool fMultiSucursal = TieneFeature("multi_sucursal");
+    bool fReportes = TieneFeature("reportes");
+
+    var tenantInfo = User.Identity?.IsAuthenticated == true ? await _tenantInfoSvc.GetAsync() : new EnfoqueAutomotriz.UI.Services.TenantInfo("", "", "");
+    var planBadgeColor = tenantInfo.Plan switch
+    {
+        "enterprise" => "bg-purple-500/20 text-purple-300",
+        "multiespecialidad" => "bg-blue-500/20 text-blue-300",
+        "basico" => "bg-gray-500/20 text-gray-300",
+        _ => "bg-gray-500/20 text-gray-300"
+    };
+    var planLabel = tenantInfo.Plan switch
+    {
+        "enterprise" => "enterprise",
+        "multiespecialidad" => "multiespecialidad",
+        "basico" => "básico",
+        _ => tenantInfo.Plan
+    };
+
+    var jwt = User.FindFirst("JWTToken")?.Value ?? "";
+    var pg = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>@ViewData["Title"] — @(string.IsNullOrEmpty(tenantInfo.NombreComercial) ? _empresa.NombreComercial : tenantInfo.NombreComercial)</title>
+    @if (_logo != null)
+    {
+        <link rel="icon" type="image/png" href="@_logo" />
+    }
+    else
+    {
+        <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
+    }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <meta name="jwt-token" content="@jwt" />
+    <meta name="api-base-url" content="" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="bg-base min-h-screen">
+    <div id="htmx-progress" class="fixed top-0 left-0 h-0.5 bg-primary z-[100] transition-all duration-200" style="width:0"></div>
+
+    <div class="flex min-h-screen">
+        <!-- Overlay mobile -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden hidden" onclick="toggleSidebar()"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-60 bg-sidebar fixed h-full flex flex-col z-50 transition-all duration-300 -translate-x-full lg:translate-x-0">
+            <!-- Logo -->
+            <div class="h-14 flex items-center justify-between px-4 border-b border-white/10 shrink-0">
+                <div class="flex items-center gap-2 sidebar-logo-area min-w-0">
+                    @if (_logo != null)
+                    {
+                        <img src="@_logo" alt="@_empresa.NombreComercial" class="w-8 h-8 rounded-lg object-contain bg-white/10 p-0.5 shrink-0" />
+                    }
+                    else
+                    {
+                        <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
+                            <i data-lucide="wrench" class="w-4 h-4 text-white"></i>
+                        </div>
+                    }
+                    <div class="sidebar-logo-text min-w-0">
+                        <div class="flex items-baseline gap-1.5 leading-none">
+                            <span class="text-sm font-bold text-white tracking-tight truncate">@(string.IsNullOrEmpty(tenantInfo.NombreComercial) ? _empresa.NombreComercial : tenantInfo.NombreComercial)</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-1">
+                            <span class="text-[9px] font-semibold text-blue-400 tracking-tight">EnfoqueAutomotriz</span>
+                            @if (!string.IsNullOrEmpty(planLabel))
+                            {
+                                <span class="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded @planBadgeColor leading-none">@planLabel</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <button class="lg:hidden text-gray-400 hover:text-white p-1 shrink-0" onclick="toggleSidebar()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Nav -->
+            <nav class="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto sidebar-scroll">
+
+                @* ── Presentación ───────────────────────────────────────── *@
+                <a href="/Presentacion/Index" class="sidebar-link @(pg.StartsWith("/Presentacion") ? "active" : "")">
+                    <i data-lucide="presentation" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Presentación</span>
+                </a>
+
+                @* ── Dashboards ─────────────────────────────────────────── *@
+                <a href="/Index" class="sidebar-link @(pg == "/Index" ? "active" : "")">
+                    <i data-lucide="layout-dashboard" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Dashboard General</span>
+                </a>
+                <a href="/Dashboard/PorSucursal" class="sidebar-link @(pg.StartsWith("/Dashboard/PorSucursal") ? "active" : "")">
+                    <i data-lucide="building-2" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Dashboard por Taller</span>
+                </a>
+                <a href="/Dashboard/Calidad" class="sidebar-link @(pg.StartsWith("/Dashboard/Calidad") ? "active" : "")">
+                    <i data-lucide="shield-check" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Dashboard de Calidad</span>
+                </a>
+                <a href="/Dashboard/Desempeno" class="sidebar-link @(pg.StartsWith("/Dashboard/Desempeno") ? "active" : "")">
+                    <i data-lucide="radar" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Desempeño Individual</span>
+                </a>
+                <a href="/Dashboard/Operativo" class="sidebar-link @(pg.StartsWith("/Dashboard/Operativo") ? "active" : "")">
+                    <i data-lucide="activity" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Tablero Operativo</span>
+                </a>
+
+                @* ── Taller (Operaciones) ──────────────────────────────────── *@
+                <div class="sidebar-section"><span class="sidebar-section-label">Taller</span></div>
+                <a href="/OrdenesServicio/Index" class="sidebar-link @(pg.StartsWith("/OrdenesServicio") ? "active" : "")">
+                    <i data-lucide="wrench" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Órdenes de Servicio</span>
+                </a>
+                <a href="/Agenda/Index" class="sidebar-link @(pg.StartsWith("/Agenda") ? "active" : "")">
+                    <i data-lucide="calendar-days" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Agenda</span>
+                </a>
+                <a href="/Clientes/Index" class="sidebar-link @(pg.StartsWith("/Clientes") ? "active" : "")">
+                    <i data-lucide="users" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Clientes</span>
+                </a>
+
+                @* ── Almacén ────────────────────────────────────────────── *@
+                @if (fAlmacen)
+                {
+                    <div class="sidebar-section"><span class="sidebar-section-label">Almacén</span></div>
+                    <a href="/Almacen/Index" class="sidebar-link @(pg.StartsWith("/Almacen/Index") ? "active" : "")">
+                        <i data-lucide="package" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Refacciones</span>
+                    </a>
+                    <a href="/Almacen/Solicitudes" class="sidebar-link @(pg.StartsWith("/Almacen/Solicitudes") ? "active" : "")">
+                        <i data-lucide="clipboard-list" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Solicitudes de Refacciones</span>
+                    </a>
+                    <a href="/Compras/Index" class="sidebar-link @(pg.StartsWith("/Compras") ? "active" : "")">
+                        <i data-lucide="shopping-cart" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Compras</span>
+                    </a>
+                }
+
+                @* ── Clientes y ventas ──────────────────────────────────── *@
+                <div class="sidebar-section"><span class="sidebar-section-label">Clientes y ventas</span></div>
+                <a href="/Promociones/Index" class="sidebar-link @(pg.StartsWith("/Promociones") ? "active" : "")">
+                    <i data-lucide="badge-percent" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Promociones</span>
+                </a>
+                <a href="/Comunicacion/Index" class="sidebar-link @(pg.StartsWith("/Comunicacion") ? "active" : "")">
+                    <i data-lucide="message-circle" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Bot / Mensajes</span>
+                </a>
+
+                @* ── Personal (RH) ──────────────────────────────────────── *@
+                @if (accesoTotal && fMultiSucursal)
+                {
+                    <div class="sidebar-section"><span class="sidebar-section-label">Personal</span></div>
+                    <a href="/RH/Empleados/Index" class="sidebar-link @(pg.StartsWith("/RH/Empleados") ? "active" : "")">
+                        <i data-lucide="id-card" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Empleados</span>
+                    </a>
+                    <a href="/RH/Organigrama/Index" class="sidebar-link @(pg.StartsWith("/RH/Organigrama") ? "active" : "")">
+                        <i data-lucide="network" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Organigrama</span>
+                    </a>
+                    <a href="/RH/Capacitacion/Index" class="sidebar-link @(pg.StartsWith("/RH/Capacitacion") ? "active" : "")">
+                        <i data-lucide="graduation-cap" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Capacitación</span>
+                    </a>
+                }
+
+                @* ── Configuración ──────────────────────────────────────── *@
+                @if (accesoTotal)
+                {
+                    <div class="sidebar-section"><span class="sidebar-section-label">Configuración</span></div>
+                    <a href="/Configuracion/Index" class="sidebar-link @(pg.StartsWith("/Configuracion") ? "active" : "")">
+                        <i data-lucide="settings" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Datos de la Empresa</span>
+                    </a>
+                    <a href="/Admin/Sucursales/Index" class="sidebar-link @(pg.StartsWith("/Admin/Sucursales") ? "active" : "")">
+                        <i data-lucide="building" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Sucursales</span>
+                    </a>
+                    <a href="/Admin/Usuarios/Index" class="sidebar-link @(pg.StartsWith("/Admin/Usuarios") ? "active" : "")">
+                        <i data-lucide="shield" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Usuarios</span>
+                    </a>
+                }
+
+                @* ── Extras ─────────────────────────────────────────────── *@
+                <div class="sidebar-section"><span class="sidebar-section-label">Cuenta</span></div>
+                @if (esSuperAdmin)
+                {
+                    <a href="/SaasAdmin/Index" class="sidebar-link @(pg.StartsWith("/SaasAdmin") ? "active" : "")">
+                        <i data-lucide="globe" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Panel SaaS</span>
+                    </a>
+                }
+                <a href="/MiPerfil/Index" class="sidebar-link @(pg.StartsWith("/MiPerfil") ? "active" : "")">
+                    <i data-lucide="user-circle" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Mi Perfil</span>
+                </a>
+                <a href="/Logout" class="sidebar-link">
+                    <i data-lucide="log-out" class="w-[18px] h-[18px]"></i><span class="sidebar-text">Cerrar sesión</span>
+                </a>
+            </nav>
+
+            <!-- Collapse toggle -->
+            <div class="hidden lg:block px-3 py-2 border-t border-white/10">
+                <button onclick="toggleCollapse()" class="w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-gray-400 hover:bg-sidebar-hover hover:text-white transition-colors text-sm" title="Minimizar menú">
+                    <i data-lucide="panel-left-close" class="w-4 h-4 sidebar-collapse-icon transition-transform duration-300"></i>
+                    <span class="sidebar-text text-xs">Minimizar</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main id="main-content" class="flex-1 lg:ml-60 min-w-0 transition-all duration-300">
+            <partial name="_Header" />
+            <div class="p-4 md:p-5 lg:p-6 animate-fade-in-up">
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <script src="~/js/enfoqueautomotriz.js" asp-append-version="true"></script>
+    <script src="~/js/header.js" asp-append-version="true"></script>
+    <script src="~/js/page-loader.js" asp-append-version="true"></script>
+    <script src="~/js/page-animations.js" asp-append-version="true"></script>
+    <script src="~/js/session-monitor.js" asp-append-version="true"></script>
+    <script src="~/js/table-scroll.js" asp-append-version="true"></script>
+    <script src="~/js/view-toggle.js" asp-append-version="true"></script>
+    <script src="~/js/accordion-table.js" asp-append-version="true"></script>
+    <script>
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        function toggleSidebar() {
+            var sidebar = document.getElementById('sidebar');
+            var overlay = document.getElementById('sidebar-overlay');
+            var isOpen = !sidebar.classList.contains('-translate-x-full');
+            if (isOpen) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+        }
+
+        function toggleCollapse() {
+            var sidebar = document.getElementById('sidebar');
+            var main = document.getElementById('main-content');
+            var collapsed = sidebar.classList.toggle('sidebar-collapsed');
+            if (collapsed) {
+                main.classList.add('main-collapsed');
+                main.classList.remove('lg:ml-60');
+            } else {
+                main.classList.remove('main-collapsed');
+                main.classList.add('lg:ml-60');
+            }
+            localStorage.setItem('sidebar-collapsed', collapsed ? '1' : '0');
+        }
+
+        (function () {
+            if (localStorage.getItem('sidebar-collapsed') === '1' && window.innerWidth >= 1024) {
+                var sidebar = document.getElementById('sidebar');
+                var main = document.getElementById('main-content');
+                sidebar.classList.add('sidebar-collapsed');
+                main.classList.add('main-collapsed');
+                main.classList.remove('lg:ml-60');
+            }
+        })();
+
+        function abrirAyuda() {
+            var drawer = document.getElementById('ayuda-drawer');
+            var backdrop = document.getElementById('ayuda-drawer-backdrop');
+            if (!drawer) return;
+            backdrop?.classList.remove('hidden');
+            requestAnimationFrame(function () {
+                drawer.classList.remove('translate-x-full');
+            });
+        }
+        function cerrarAyuda() {
+            var drawer = document.getElementById('ayuda-drawer');
+            var backdrop = document.getElementById('ayuda-drawer-backdrop');
+            if (!drawer) return;
+            drawer.classList.add('translate-x-full');
+            backdrop?.classList.add('hidden');
+        }
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') cerrarAyuda();
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.__ayudaPresent) {
+                var btn = document.getElementById('btnAyuda');
+                if (btn) btn.classList.remove('hidden');
+            }
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

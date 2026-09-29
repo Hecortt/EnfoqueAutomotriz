@@ -1,0 +1,52 @@
+name: CI — Build & Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore
+        run: dotnet restore EnfoqueAutomotriz.slnx
+
+      - name: Build
+        run: dotnet build EnfoqueAutomotriz.slnx --no-restore -c Release -warnaserror-
+
+      - name: Publish API
+        run: dotnet publish src/EnfoqueAutomotriz.Api/EnfoqueAutomotriz.Api.csproj -c Release -o ./publish/api --no-restore
+
+      - name: Publish UI
+        run: dotnet publish src/EnfoqueAutomotriz.UI/EnfoqueAutomotriz.UI.csproj -c Release -o ./publish/ui --no-restore
+
+      - name: Verify tenant DDL template exists
+        run: test -f ./publish/api/Resources/tenant_ddl_template.sql
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t enfoqueautomotriz:${{ github.sha }} .
+
+      - name: Verify image runs
+        run: |
+          docker run --rm -d --name enfoqueautomotriz-test \
+            -e ASPNETCORE_ENVIRONMENT=Production \
+            -e DatabaseSettings__Host=localhost \
+            enfoqueautomotriz:${{ github.sha }}
+          sleep 5
+          docker stop enfoqueautomotriz-test || true

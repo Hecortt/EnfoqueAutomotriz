@@ -1,0 +1,163 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.OrdenesServicio.CreateModel
+@using EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Nueva Orden de Servicio";
+}
+
+<h2 class="text-xl font-bold text-text-1 mb-4">Nueva Orden de Servicio</h2>
+
+<partial name="_Ayuda" model="@(new AyudaModel {
+    PaginaId = "ordenes-servicio-create",
+    Titulo = "¿Qué hace esta pantalla?",
+    QueHace = "Registra la recepción de un vehículo en el taller: datos del cliente, vehículo, kilometraje, nivel de gasolina y el problema reportado.",
+    Pasos = new List<PasoAyuda> {
+        new(1, "Selecciona primero el cliente; el selector de vehículo se filtra automáticamente a los suyos."),
+        new(2, "Captura el kilometraje y nivel de gasolina al momento de la recepción — sirve como respaldo ante reclamos."),
+        new(3, "Describe el problema reportado por el cliente con el mayor detalle posible."),
+        new(4, "Usa el botón '✨ Mejorar con IA' para pulir la redacción del problema reportado antes de guardar."),
+        new(5, "Puedes definir opcionalmente la fecha de entrega comprometida — esto alimenta el Dashboard de Calidad más adelante.")
+    },
+    Alertas = new List<string> {
+        "Después de guardar podrás agregar fotos, marcar daños en el diagrama del vehículo y asignar el equipo de mecánicos desde el detalle de la orden."
+    }
+})" />
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-error mb-4">@Model.ErrorMessage</div>
+}
+
+<div class="card max-w-2xl">
+    <div class="card-body">
+        <form method="post" class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-text-2 mb-1">Sucursal</label>
+                    <select asp-for="Input.SucursalId" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                        @foreach (var s in Model.Sucursales)
+                        {
+                            <option value="@s.Id">@s.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-text-2 mb-1">Cliente</label>
+                    <select asp-for="Input.ClienteId" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" id="clienteSelect">
+                        <option value="">Selecciona...</option>
+                        @foreach (var c in Model.Clientes)
+                        {
+                            <option value="@c.Id">@c.Nombre</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">Vehículo</label>
+                <select asp-for="Input.VehiculoId" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                    <option value="">Selecciona un cliente primero...</option>
+                    @foreach (var v in Model.Vehiculos)
+                    {
+                        <option value="@v.Id" data-cliente="@v.ClienteId">@v.Marca @v.Modelo @v.Anio — @v.Placas</option>
+                    }
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-text-2 mb-1">Kilometraje actual</label>
+                    <input asp-for="Input.KilometrajeRecepcion" type="number" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-text-2 mb-1">Nivel de gasolina</label>
+                    <select asp-for="Input.NivelGasolina" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                        <option value="Vacío">Vacío</option>
+                        <option value="1/4">1/4</option>
+                        <option value="1/2" selected>1/2</option>
+                        <option value="3/4">3/4</option>
+                        <option value="Lleno">Lleno</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">Fecha de entrega comprometida (opcional)</label>
+                <input asp-for="Input.FechaEntregaProgramada" type="datetime-local" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <label class="block text-xs font-medium text-text-2">Problema reportado por el cliente</label>
+                    <button type="button" class="ia-btn" id="btnMejorarIA" title="Mejorar redacción con IA">
+                        <span>✨</span><span>Mejorar con IA</span>
+                    </button>
+                </div>
+                <textarea asp-for="Input.ProblemaReportado" id="problemaReportado" rows="3" class="w-full px-3 py-2 rounded-lg border border-border-ui text-sm"></textarea>
+            </div>
+
+            <button type="submit" class="btn bg-primary text-white w-full">Registrar orden</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('clienteSelect').addEventListener('change', function () {
+        var clienteId = this.value;
+        document.querySelectorAll('select[name="Input.VehiculoId"] option').forEach(function (opt) {
+            if (!opt.dataset.cliente) return;
+            opt.hidden = opt.dataset.cliente !== clienteId;
+        });
+    });
+
+    document.getElementById('btnMejorarIA').addEventListener('click', async function () {
+        var btn = this;
+        var textarea = document.getElementById('problemaReportado');
+        var texto = textarea.value.trim();
+        if (!texto) { textarea.focus(); return; }
+
+        var vehiculoSelect = document.querySelector('select[name="Input.VehiculoId"]');
+        var vehiculoTexto = vehiculoSelect && vehiculoSelect.selectedIndex >= 0
+            ? vehiculoSelect.options[vehiculoSelect.selectedIndex].text
+            : '';
+
+        var originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.classList.add('ia-btn--loading');
+        btn.innerHTML = '<span class="ia-spinner"></span><span>Procesando...</span>';
+
+        try {
+            var jwt = document.querySelector('meta[name="jwt-token"]')?.content ?? '';
+            var resp = await fetch('/api/v1/ia/mejorar-descripcion-orden', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+                body: JSON.stringify({ descripcion: texto, vehiculo: vehiculoTexto })
+            });
+            var data = await resp.json();
+            if (!resp.ok || !data.isSuccess) throw new Error((data.errorMessages && data.errorMessages[0]) || 'No se pudo mejorar el texto.');
+
+            textarea.value = data.result.descripcion;
+            mostrarToastIA();
+        } catch (e) {
+            mostrarToastIA(true, e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            btn.classList.remove('ia-btn--loading');
+        }
+    });
+
+    function mostrarToastIA(esError, mensaje) {
+        var toast = document.getElementById('ia-toast');
+        if (!toast) { toast = document.createElement('div'); toast.id = 'ia-toast'; toast.className = 'ia-toast'; document.body.appendChild(toast); }
+        if (esError) {
+            toast.innerHTML = '<span class="ia-toast__icon">⚠️</span><div><p class="ia-toast__title">Error de IA</p><p class="ia-toast__msg">' + (mensaje || '') + '</p></div>';
+            toast.classList.add('ia-toast--visible', 'ia-toast--error');
+        } else {
+            toast.innerHTML = '<span class="ia-toast__icon">✨</span><div><p class="ia-toast__title">Texto mejorado por IA</p><p class="ia-toast__msg">Revisa la redacción antes de guardar la orden.</p></div>';
+            toast.classList.add('ia-toast--visible');
+        }
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(function () { toast.classList.remove('ia-toast--visible', 'ia-toast--error'); }, 5000);
+    }
+</script>

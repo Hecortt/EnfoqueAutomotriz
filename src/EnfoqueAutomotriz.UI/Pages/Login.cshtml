@@ -1,0 +1,311 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.LoginModel
+@inject EnfoqueAutomotriz.UI.Services.IEmpresaContextService _empresaCtx
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+    Layout = "_LoginLayout";
+    var empresa = await _empresaCtx.GetAsync();
+    var logoProxy = empresa.LogoUrl != null ? EnfoqueAutomotriz.UI.Helpers.FotoUrlHelper.ToProxy(empresa.LogoUrl) : null;
+}
+
+<div class="min-h-screen w-full flex">
+    <!-- Panel izquierdo - Branding -->
+    <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-900">
+        <div class="absolute inset-0 opacity-20">
+            <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <defs>
+                    <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" stroke-width="0.5" class="text-white"/>
+                    </pattern>
+                </defs>
+                <rect width="100" height="100" fill="url(#grid)"/>
+            </svg>
+        </div>
+
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/90 via-slate-900/50 to-slate-900"></div>
+
+        <div class="absolute -top-20 -right-20 w-80 h-80 bg-indigo-500/30 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-violet-500/20 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl"></div>
+
+        <div class="relative z-10 flex flex-col justify-between p-12 xl:p-16 w-full">
+            <div class="flex items-center gap-3">
+                @if (logoProxy != null)
+                {
+                    <img src="@logoProxy" alt="@empresa.NombreComercial" class="w-11 h-11 rounded-xl object-contain bg-white/10 p-1 border border-white/20 shrink-0" />
+                }
+                else
+                {
+                    <div class="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center shrink-0">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white">
+                            <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.77z"/>
+                        </svg>
+                    </div>
+                }
+                <div>
+                    <div class="flex items-baseline gap-1.5">
+                        <span class="text-xl font-bold text-white">@empresa.NombreComercial</span>
+                        <span class="text-sm font-semibold text-blue-400">EnfoqueAutomotriz</span>
+                    </div>
+                    <span class="block text-white/60 text-xs mt-0.5">Plataforma SaaS para talleres automotrices</span>
+                </div>
+            </div>
+
+            <div class="max-w-md">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 text-white/80 text-xs font-medium mb-6">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                    Sistema en línea
+                </div>
+
+                <h1 class="text-4xl xl:text-5xl font-bold text-white leading-tight mb-4">
+                    Control total de tu taller
+                </h1>
+                <p class="text-lg text-white/60 leading-relaxed mb-10">
+                    Administra órdenes de servicio, clientes, vehículos y refacciones desde una sola plataforma, sin importar el tamaño de tu taller.
+                </p>
+
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-emerald-400">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-white font-medium text-sm">Multi-especialidad</p>
+                            <p class="text-white/50 text-xs">Mecánica, hojalatería y pintura, eléctrico, diagnóstico</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+                        <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-400">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-white font-medium text-sm">Reportes y facturación</p>
+                            <p class="text-white/50 text-xs">Órdenes de servicio, refacciones y cierre de caja</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 p-4 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
+                        <div class="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center shrink-0">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-violet-400">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-white font-medium text-sm">Desde 1 taller hasta cadenas</p>
+                            <p class="text-white/50 text-xs">Multi-sucursal con administración central</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-xs text-white/40">
+                &copy; 2026 @empresa.NombreComercial &mdash; EnfoqueAutomotriz
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel derecho - Formulario -->
+    <div class="w-full lg:w-1/2 flex flex-col bg-white">
+        <div class="lg:hidden bg-slate-900 p-5">
+            <div class="flex items-center gap-3">
+                @if (logoProxy != null)
+                {
+                    <img src="@logoProxy" alt="@empresa.NombreComercial" class="w-10 h-10 rounded-xl object-contain bg-white/10 p-0.5 shrink-0" />
+                }
+                else
+                {
+                    <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white">
+                            <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.77z"/>
+                        </svg>
+                    </div>
+                }
+                <div class="flex items-baseline gap-1.5">
+                    <span class="text-lg font-bold text-white">@empresa.NombreComercial</span>
+                    <span class="text-xs font-semibold text-blue-400">EnfoqueAutomotriz</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 flex items-center justify-center p-6 sm:p-8">
+            <div class="w-full max-w-sm">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-2">Iniciar sesión</h2>
+                    <p class="text-slate-500 text-sm">Ingresa tus credenciales para continuar</p>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                {
+                    <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start gap-3">
+                        <div class="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-red-600">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </div>
+                        <p class="text-sm text-red-700">@Model.ErrorMessage</p>
+                    </div>
+                }
+
+                <form method="post" id="loginForm" class="space-y-5">
+                    <div>
+                        <label asp-for="Input.Email" class="block text-sm font-medium text-slate-700 mb-2">
+                            Correo electrónico
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
+                                </svg>
+                            </span>
+                            <input asp-for="Input.Email"
+                                   type="email"
+                                   class="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all"
+                                   placeholder="tu@taller.com"
+                                   required
+                                   autocomplete="email" />
+                        </div>
+                        <span asp-validation-for="Input.Email" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="Input.Password" class="block text-sm font-medium text-slate-700 mb-2">
+                            Contraseña
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                                </svg>
+                            </span>
+                            <input asp-for="Input.Password"
+                                   type="password"
+                                   id="passwordInput"
+                                   class="w-full h-12 pl-11 pr-12 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all"
+                                   placeholder="Tu contraseña"
+                                   required
+                                   autocomplete="current-password" />
+                            <button type="button"
+                                    onclick="togglePassword()"
+                                    class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                                <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <svg id="eyeOffIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="hidden">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Input.Password" class="text-xs text-red-500 mt-1 block"></span>
+                    </div>
+
+                    <input type="hidden" asp-for="Input.RecaptchaToken" id="recaptchaToken" />
+
+                    <button type="submit"
+                            id="loginBtn"
+                            class="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl flex items-center justify-center gap-2 transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 active:scale-[0.98]">
+                        <span>Iniciar sesión</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="relative my-8">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-slate-200"></div>
+                    </div>
+                    <div class="relative flex justify-center">
+                        <span class="px-4 bg-white text-xs text-slate-400 uppercase tracking-wider">Módulos del sistema</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                            <i data-lucide="wrench" class="w-4 h-4 text-indigo-600"></i>
+                        </div>
+                        <span class="text-xs font-medium text-slate-600">Órdenes</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center">
+                            <i data-lucide="car" class="w-4 h-4 text-violet-600"></i>
+                        </div>
+                        <span class="text-xs font-medium text-slate-600">Vehículos</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                            <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i>
+                        </div>
+                        <span class="text-xs font-medium text-slate-600">Clientes</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                            <i data-lucide="package" class="w-4 h-4 text-amber-600"></i>
+                        </div>
+                        <span class="text-xs font-medium text-slate-600">Refacciones</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center">
+                            <i data-lucide="calendar-check" class="w-4 h-4 text-rose-600"></i>
+                        </div>
+                        <span class="text-xs font-medium text-slate-600">Citas</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                        <div class="w-8 h-8 rounded-lg bg-cyan-100 flex items-center justify-center">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-cyan-600"></i>
+                        </div>
+                        <span class="text-xs font-medium text-slate-600">Reportes</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:hidden p-4 text-center border-t border-slate-100">
+            <p class="text-xs text-slate-400">&copy; 2026 @empresa.NombreComercial &mdash; EnfoqueAutomotriz</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    function togglePassword() {
+        const input = document.getElementById('passwordInput');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const eyeOffIcon = document.getElementById('eyeOffIcon');
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            eyeIcon.classList.add('hidden');
+            eyeOffIcon.classList.remove('hidden');
+        } else {
+            input.type = 'password';
+            eyeIcon.classList.remove('hidden');
+            eyeOffIcon.classList.add('hidden');
+        }
+    }
+</script>
+
+@if (Model.RecaptchaEnabled)
+{
+    <script src="https://www.google.com/recaptcha/api.js?render=@Model.RecaptchaSiteKey"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const form = this;
+            grecaptcha.ready(function () {
+                grecaptcha.execute('@Model.RecaptchaSiteKey', { action: 'login' }).then(function (token) {
+                    document.getElementById('recaptchaToken').value = token;
+                    form.submit();
+                }).catch(function () { form.submit(); });
+            });
+        });
+    </script>
+}

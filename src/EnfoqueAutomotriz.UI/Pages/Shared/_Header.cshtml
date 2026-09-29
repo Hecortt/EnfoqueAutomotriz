@@ -1,0 +1,73 @@
+@using System.Security.Claims
+@{
+    var userName = User.Identity?.Name ?? "Usuario";
+    var userEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+    var userInitial = userName.Length > 0 ? userName.Substring(0, 1).ToUpper() : "A";
+    var roleLabel = User.IsInRole("0") ? "Super Admin"
+        : User.IsInRole("1") ? "Admin Taller"
+        : User.IsInRole("2") ? "Mecánico"
+        : User.IsInRole("3") ? "Recepcionista"
+        : User.IsInRole("5") ? "Facturación"
+        : User.IsInRole("6") ? "Soporte IT"
+        : "Usuario";
+}
+<header class="header-bar">
+    <div class="flex items-center gap-3 min-w-0 flex-1">
+        <button class="lg:hidden btn-icon text-text-2 shrink-0" onclick="toggleSidebar()">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <h1 class="text-base font-semibold text-text-1 truncate">@ViewData["Title"]</h1>
+    </div>
+    <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
+        <button id="btnAyuda" class="header-icon-btn hidden" title="Ayuda" onclick="abrirAyuda()">
+            <i data-lucide="circle-help" class="w-[18px] h-[18px]"></i>
+        </button>
+
+        <!-- Notificaciones -->
+        <div class="relative" id="notification-container">
+            <button id="notification-btn" class="header-icon-btn relative" title="Notificaciones">
+                <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+                <span id="notification-dot" class="header-notification-dot hidden"></span>
+            </button>
+            <div id="notification-menu" class="header-dropdown header-dropdown-wide hidden">
+                <div class="header-dropdown-header">
+                    <span>Notificaciones</span>
+                    <button type="button" id="notification-mark-all-read" class="header-dropdown-link">Marcar todas como leídas</button>
+                </div>
+                <div id="notification-list" class="header-notification-list">
+                    <div class="header-notification-empty">Cargando…</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usuario -->
+        <div class="relative" id="user-menu-container">
+            <button id="user-menu-btn" class="header-user-btn">
+                <div class="avatar bg-primary text-white text-xs shrink-0 w-7 h-7 sm:w-8 sm:h-8">
+                    @userInitial
+                </div>
+                <div class="hidden md:block text-left leading-tight">
+                    <p class="text-xs font-semibold text-text-1 truncate max-w-[8rem] lg:max-w-[10rem]">@userName</p>
+                    <p class="text-[10px] text-text-3 truncate max-w-[8rem] lg:max-w-[10rem]">@roleLabel</p>
+                </div>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-text-3 hidden md:block"></i>
+            </button>
+            <div id="user-menu" class="header-dropdown hidden">
+                <div class="header-dropdown-user">
+                    <p class="text-xs font-semibold text-text-1 truncate">@userName</p>
+                    <p class="text-[10px] text-text-3 truncate">@userEmail</p>
+                </div>
+                <hr class="header-dropdown-divider" />
+                <a href="/MiPerfil" class="header-dropdown-item">
+                    <i data-lucide="user-circle" class="w-4 h-4"></i>
+                    Mi Perfil
+                </a>
+                <hr class="header-dropdown-divider" />
+                <a href="/Logout" class="header-dropdown-item header-dropdown-item-danger">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                    Cerrar Sesión
+                </a>
+            </div>
+        </div>
+    </div>
+</header>

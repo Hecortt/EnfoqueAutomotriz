@@ -1,0 +1,62 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.Comunicacion.IndexModel
+@{
+    ViewData["Title"] = "Bot / Mensajes";
+}
+
+<h2 class="text-xl font-bold text-text-1 mb-1">Bot de comunicación con el cliente</h2>
+<p class="text-text-3 text-sm mb-4">
+    Motor de plantillas + historial de envíos. Fase 1: simulado (sin integración real de WhatsApp/SMS).
+    Se conecta a un proveedor (WhatsApp Business API, Twilio, etc.) en la siguiente fase.
+</p>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="card card-body">
+        <h3 class="font-semibold text-text-1 mb-3">Plantillas</h3>
+        @foreach (var p in Model.Plantillas)
+        {
+            <div class="border border-border-ui rounded-lg p-3 mb-2">
+                <div class="flex justify-between items-center mb-1">
+                    <p class="font-medium text-sm">@p.Nombre</p>
+                    <span class="badge bg-slate-100 text-slate-700">@p.Canal</span>
+                </div>
+                <p class="text-xs text-text-3">@p.Cuerpo</p>
+            </div>
+        }
+
+        <hr class="my-3 border-border-ui" />
+        <h3 class="font-semibold text-text-1 mb-2 text-sm">Nueva plantilla</h3>
+        <form method="post" class="space-y-2">
+            <input name="Nombre" placeholder="Nombre (ej. Vehículo listo)" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <textarea name="Cuerpo" rows="2" placeholder="Hola {{cliente}}, tu {{vehiculo}} ya está listo para recoger. Folio {{folio}}."
+                      class="w-full px-3 py-2 rounded-lg border border-border-ui text-sm"></textarea>
+            <select name="Canal" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                <option value="1">WhatsApp</option>
+                <option value="2">Email</option>
+                <option value="3">SMS</option>
+            </select>
+            <button type="submit" class="btn bg-primary text-white w-full">Guardar plantilla</button>
+        </form>
+    </div>
+
+    <div class="card card-body">
+        <h3 class="font-semibold text-text-1 mb-3">Historial de mensajes (simulados)</h3>
+        <div class="space-y-2 max-h-[500px] overflow-y-auto">
+            @foreach (var m in Model.Historial)
+            {
+                <div class="border border-border-ui rounded-lg p-2">
+                    <div class="flex justify-between text-[10px] text-text-3 mb-1">
+                        <span>@m.Canal → @m.Destinatario</span>
+                        <span>@m.Fecha.ToString("dd/MM HH:mm")</span>
+                    </div>
+                    <p class="text-xs">@m.Contenido</p>
+                    <span class="badge bg-amber-100 text-amber-700 mt-1">@m.Estado</span>
+                </div>
+            }
+            @if (Model.Historial.Count == 0)
+            {
+                <p class="text-text-3 text-sm text-center py-6">Sin mensajes enviados aún.</p>
+            }
+        </div>
+    </div>
+</div>

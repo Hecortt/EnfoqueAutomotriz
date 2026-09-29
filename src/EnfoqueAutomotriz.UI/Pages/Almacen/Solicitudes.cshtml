@@ -1,0 +1,155 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.Almacen.SolicitudesModel
+@using EnfoqueAutomotriz.Domain.Almacen
+@using EnfoqueAutomotriz.Domain.Ordenes
+@using EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Solicitudes de Refacciones";
+}
+
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="text-xl font-bold text-text-1">Solicitudes de Refacciones</h2>
+        <p class="text-text-3 text-sm">Refacciones pedidas por cada unidad y su estatus de preparación/entrega en almacén.</p>
+    </div>
+    <form method="get" class="flex items-center gap-2 flex-wrap">
+        <select name="sucursalId" onchange="this.form.submit()" class="h-9 px-3 rounded-lg border border-border-ui text-sm">
+            <option value="">Todas las sucursales</option>
+            @foreach (var s in Model.Sucursales)
+            {
+                <option value="@s.Id" selected="@(Model.SucursalId == s.Id)">@s.Nombre</option>
+            }
+        </select>
+        <label class="flex items-center gap-1.5 text-xs text-text-2 h-9 px-3 rounded-lg border border-border-ui">
+            <input type="checkbox" name="soloEnProceso" value="true" onchange="this.form.submit()" checked="@Model.SoloEnProceso" />
+            Solo unidades en proceso
+        </label>
+    </form>
+</div>
+
+<partial name="_Ayuda" model="@(new AyudaModel {
+    PaginaId = "almacen-solicitudes",
+    Titulo = "¿Qué muestra esta pantalla?",
+    QueHace = "Tablero de las solicitudes de refacciones que se generan automáticamente cuando el cliente aprueba una cotización, con su estatus de preparación en almacén.",
+    Pasos = new List<PasoAyuda> {
+        new(1, "Las columnas representan el flujo: Pendiente → Preparando → Listo para entrega → Entregado."),
+        new(2, "Cada tarjeta muestra la orden, el cliente/vehículo y la lista de refacciones con su cantidad."),
+        new(3, "Usa el botón de la tarjeta para avanzar su estatus — al marcarla como 'Entregado', el sistema descuenta el stock automáticamente."),
+        new(4, "Activa 'Solo unidades en proceso' para enfocarte en las órdenes que realmente siguen en el taller.")
+    },
+    Conexiones = new List<ConexionAyuda> {
+        new("Refacciones", "/Almacen/Index", "package", "Ver el inventario y niveles de stock"),
+        new("Órdenes de Servicio", "/OrdenesServicio/Index", "wrench", "Ver el detalle completo de la orden asociada")
+    },
+    Alertas = new List<string> {
+        "Si una orden no tiene refacciones cotizadas (solo mano de obra), no se genera ninguna solicitud de almacén para ella."
+    }
+})" />
+
+@{
+    var columnas = new[]
+    {
+        (Estado: EstadoSolicitudAlmacen.Pendiente, Nombre: "Pendiente", Color: "#94A3B8"),
+        (Estado: EstadoSolicitudAlmacen.Preparando, Nombre: "Preparando", Color: "#F59E0B"),
+        (Estado: EstadoSolicitudAlmacen.Listo, Nombre: "Listo para entrega", Color: "#3B82F6"),
+        (Estado: EstadoSolicitudAlmacen.Entregado, Nombre: "Entregado", Color: "#10B981")
+    };
+}
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+    @foreach (var col in columnas)
+    {
+        var solicitudesCol = Model.Solicitudes.Where(s => s.Estado == col.Estado).OrderByDescending(s => s.FechaSolicitud).ToList();
+        <div class="card flex flex-col">
+            <div class="card-header flex items-center justify-between !py-2">
+                <h3 class="font-semibold text-text-1 text-sm" style="border-left:3px solid @col.Color; padding-left:6px;">@col.Nombre</h3>
+                <span class="badge bg-base text-text-2">@solicitudesCol.Count</span>
+            </div>
+            <div class="card-body !p-2 space-y-2" style="max-height: 75vh; overflow-y: auto;">
+                @if (!solicitudesCol.Any())
+                {
+                    <p class="text-[11px] text-text-3 text-center py-4">Sin solicitudes aquí.</p>
+                }
+                else
+                {
+                    @foreach (var s in solicitudesCol)
+                    {
+                        <div class="rounded-lg border border-border-ui p-2.5 bg-white" data-solicitud-id="@s.Id">
+                            <div class="flex items-center justify-between mb-1">
+                                <a href="/OrdenesServicio/Detail/@s.OrdenServicioId" class="font-semibold text-xs text-primary hover:underline">@s.OrdenServicio?.Folio</a>
+                                <span class="text-[10px] text-text-3">@s.FechaSolicitud.ToString("dd/MM HH:mm")</span>
+                            </div>
+                            <p class="text-xs font-medium text-text-1">@s.OrdenServicio?.Cliente?.Nombre</p>
+                            <p class="text-[11px] text-text-3">@s.OrdenServicio?.Vehiculo?.Marca @s.OrdenServicio?.Vehiculo?.Modelo — @s.OrdenServicio?.Vehiculo?.Placas</p>
+                            @if (s.OrdenServicio != null)
+                            {
+                                <span class="badge bg-base text-text-2 text-[10px] mt-1">Orden: @s.OrdenServicio.Estado</span>
+                            }
+
+                            <div class="mt-2 border-t border-border-ui pt-1.5 space-y-0.5">
+                                @foreach (var d in s.Detalles)
+                                {
+                                    <div class="flex justify-between text-[11px]">
+                                        <span class="text-text-2">@d.Refaccion?.Nombre</span>
+                                        <span class="font-medium">x@(d.Cantidad)</span>
+                                    </div>
+                                }
+                            </div>
+
+                            @if (col.Estado != EstadoSolicitudAlmacen.Entregado)
+                            {
+                                var siguiente = col.Estado switch
+                                {
+                                    EstadoSolicitudAlmacen.Pendiente => (int)EstadoSolicitudAlmacen.Preparando,
+                                    EstadoSolicitudAlmacen.Preparando => (int)EstadoSolicitudAlmacen.Listo,
+                                    EstadoSolicitudAlmacen.Listo => (int)EstadoSolicitudAlmacen.Entregado,
+                                    _ => (int)EstadoSolicitudAlmacen.Pendiente
+                                };
+                                var textoBoton = col.Estado switch
+                                {
+                                    EstadoSolicitudAlmacen.Pendiente => "Iniciar preparación",
+                                    EstadoSolicitudAlmacen.Preparando => "Marcar listo",
+                                    EstadoSolicitudAlmacen.Listo => "Entregar a taller",
+                                    _ => "Avanzar"
+                                };
+                                <button type="button" class="btn bg-primary text-white text-[11px] w-full mt-2 h-7 btn-avanzar" data-siguiente="@siguiente">
+                                    @textoBoton
+                                </button>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    function jwtHeader() {
+        const jwt = document.querySelector('meta[name="jwt-token"]')?.content ?? '';
+        return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt };
+    }
+
+    document.querySelectorAll('.btn-avanzar').forEach(btn => {
+        btn.addEventListener('click', async function () {
+            const card = btn.closest('[data-solicitud-id]');
+            const solicitudId = card.dataset.solicitudId;
+            const siguiente = parseInt(btn.dataset.siguiente, 10);
+
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+            try {
+                const resp = await fetch('/api/v1/almacen/solicitudes/' + solicitudId + '/estado', {
+                    method: 'PATCH',
+                    headers: jwtHeader(),
+                    body: JSON.stringify({ estado: siguiente })
+                });
+                if (!resp.ok) throw new Error('No se pudo actualizar el estado.');
+                location.reload();
+            } catch (err) {
+                alert('Error: ' + err.message);
+                btn.disabled = false;
+            }
+        });
+    });
+</script>

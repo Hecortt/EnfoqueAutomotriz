@@ -1,0 +1,119 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.Configuracion.IndexModel
+@using EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Configuración de la Empresa";
+}
+
+<div class="mb-4">
+    <h2 class="text-xl font-bold text-text-1">Configuración de la Empresa</h2>
+    <p class="text-text-3 text-sm">Datos generales del taller: identidad, contacto y branding que se muestran en el sistema y en los PDF de órdenes de servicio.</p>
+</div>
+
+<partial name="_Ayuda" model="@(new AyudaModel {
+    PaginaId = "configuracion-empresa",
+    Titulo = "¿Qué configuro aquí?",
+    QueHace = "Los datos generales de tu taller: nombre comercial, logo, razón social/RFC, contacto y datos bancarios. Se usan en el sidebar, el PDF de las órdenes de servicio y el portal de seguimiento del cliente.",
+    Pasos = new List<PasoAyuda> {
+        new(1, "El 'Nombre comercial' y el logo se muestran de inmediato en el sidebar de todo el sistema al guardar."),
+        new(2, "El logo se captura como una URL (por ejemplo, un enlace público a tu imagen); no se sube un archivo directamente."),
+        new(3, "La razón social, RFC y leyenda se imprimen en el PDF de las órdenes de servicio."),
+        new(4, "Los datos bancarios son opcionales — útiles si compartes el PDF con instrucciones de pago.")
+    },
+    Alertas = new List<string> {
+        "Solo el Admin del Taller o Soporte IT pueden editar esta información."
+    }
+})" />
+
+@if (Model.Mensaje != null)
+{
+    <div class="alert @(Model.Exito ? "alert-success" : "alert-error") mb-4">@Model.Mensaje</div>
+}
+
+<form method="post" class="space-y-4 max-w-3xl">
+    <div class="card card-body">
+        <h3 class="font-semibold text-text-1 mb-3 flex items-center gap-2"><i data-lucide="building-2" class="w-4 h-4 text-primary"></i> Identidad</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">Nombre comercial</label>
+                <input asp-for="Input.NombreComercial" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">Razón social</label>
+                <input asp-for="Input.RazonSocial" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">RFC</label>
+                <input asp-for="Input.Rfc" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">Moneda</label>
+                <input asp-for="Input.Moneda" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-medium text-text-2 mb-1">URL del logo</label>
+                <div class="flex items-center gap-3">
+                    <input asp-for="Input.LogoUrl" placeholder="https://..." class="flex-1 h-9 px-3 rounded-lg border border-border-ui text-sm" />
+                    @if (!string.IsNullOrEmpty(Model.Input.LogoUrl))
+                    {
+                        <img src="@Model.Input.LogoUrl" alt="Logo" class="w-9 h-9 rounded-lg object-contain bg-base border border-border-ui p-0.5" />
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-body">
+        <h3 class="font-semibold text-text-1 mb-3 flex items-center gap-2"><i data-lucide="phone" class="w-4 h-4 text-primary"></i> Contacto</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">Dirección</label>
+                <input asp-for="Input.Direccion" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">Teléfono</label>
+                <input asp-for="Input.Telefono" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">Email</label>
+                <input asp-for="Input.Email" type="email" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">Sitio web</label>
+                <input asp-for="Input.SitioWeb" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-body">
+        <h3 class="font-semibold text-text-1 mb-3 flex items-center gap-2"><i data-lucide="landmark" class="w-4 h-4 text-primary"></i> Datos bancarios (opcional)</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">Banco</label>
+                <input asp-for="Input.Banco" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">CLABE</label>
+                <input asp-for="Input.Clabe" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">Cuenta bancaria</label>
+                <input asp-for="Input.CuentaBancaria" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-text-2 mb-1">Titular de la cuenta</label>
+                <input asp-for="Input.TitularCuenta" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-body">
+        <h3 class="font-semibold text-text-1 mb-3 flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-primary"></i> Facturación</h3>
+        <label class="block text-xs font-medium text-text-2 mb-1">Leyenda para el PDF de la orden de servicio</label>
+        <textarea asp-for="Input.LeyendaFactura" rows="3" placeholder="Ej. Este documento no es un comprobante fiscal. Para tu factura, comunícate con..." class="w-full px-3 py-2 rounded-lg border border-border-ui text-sm"></textarea>
+    </div>
+
+    <button type="submit" class="btn bg-primary text-white">
+        <i data-lucide="save" class="w-4 h-4"></i> Guardar cambios
+    </button>
+</form>

@@ -1,0 +1,338 @@
+@page "{token:guid}"
+@model EnfoqueAutomotriz.UI.Pages.OrdenesServicio.EntregaModel
+@using EnfoqueAutomotriz.Domain.Ordenes
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portal de Entrega — @(Model.Data?.Orden.Folio ?? "")</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .entrega-bg {
+            background: linear-gradient(160deg, #EEF2FF 0%, #F8FAFC 35%, #F8FAFC 100%);
+            min-height: 100vh;
+        }
+        .entrega-hero {
+            background: linear-gradient(135deg, #4F46E5 0%, #6366F1 55%, #8B5CF6 100%);
+        }
+        @@keyframes entrega-pop {
+            0% { opacity: 0; transform: translateY(16px) scale(0.98); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .entrega-card { animation: entrega-pop 0.5s ease-out both; }
+    </style>
+</head>
+<body class="entrega-bg">
+    @if (Model.Data == null)
+    {
+        <div class="max-w-lg mx-auto p-8 text-center">
+            <div class="alert alert-error">No se encontró la información de esta orden.</div>
+            <a href="/OrdenesServicio/Index" class="btn bg-primary text-white mt-4 inline-flex">Volver a Órdenes</a>
+        </div>
+    }
+    else
+    {
+        var d = Model.Data;
+        var empresa = Model.Empresa;
+        var iniciales = d.Cliente.Nombre.Length > 0 ? d.Cliente.Nombre[0].ToString().ToUpper() : "?";
+
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+            <!-- Barra superior -->
+            <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-2.5">
+                    @if (!string.IsNullOrEmpty(empresa?.LogoUrl))
+                    {
+                        <img src="@empresa.LogoUrl" alt="@empresa.NombreComercial" class="w-9 h-9 rounded-lg object-contain bg-white border border-border-ui p-1" />
+                    }
+                    else
+                    {
+                        <div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
+                            <i data-lucide="wrench" class="w-5 h-5 text-white"></i>
+                        </div>
+                    }
+                    <div>
+                        <p class="text-sm font-bold text-text-1 leading-none">@(empresa?.NombreComercial ?? "Taller")</p>
+                        <p class="text-[11px] text-text-3">Portal de Entrega</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btnFullscreen" class="btn bg-white border border-border-ui text-xs h-9">
+                        <i data-lucide="maximize" class="w-3.5 h-3.5"></i> Pantalla completa
+                    </button>
+                    <a href="/Seguimiento/@Model.Token" class="btn bg-white border border-border-ui text-xs h-9">
+                        <i data-lucide="list-checks" class="w-3.5 h-3.5"></i> Ver seguimiento
+                    </a>
+                </div>
+            </div>
+
+            <!-- HERO: bienvenida + historial de visitas -->
+            <div class="entrega-hero rounded-2xl shadow-lg p-6 sm:p-8 mb-5 text-white entrega-card">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center text-2xl sm:text-3xl font-extrabold shrink-0">
+                        @iniciales
+                    </div>
+                    <div>
+                        <p class="text-2xl sm:text-3xl font-extrabold leading-tight">¡Hola, @d.Cliente.Nombre.Split(' ')[0]!</p>
+                        <p class="text-white/80 text-sm sm:text-base">Gracias por confiar en nosotros para el cuidado de tu vehículo.</p>
+                    </div>
+                </div>
+
+                @if (d.Cliente.EsPrimeraVisita)
+                {
+                    <div class="bg-white/15 rounded-xl p-4 mb-3">
+                        <p class="font-bold text-base sm:text-lg mb-1">✨ ¡Es un placer recibirte por primera vez!</p>
+                        <p class="text-white/85 text-sm">Queremos que esta sea la primera de muchas visitas. Esto es lo que nos hace diferentes:</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div class="bg-white/10 rounded-lg p-3 flex items-start gap-2.5">
+                            <i data-lucide="radar" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                            <div><p class="font-semibold text-sm">Seguimiento en línea</p><p class="text-white/75 text-xs">Consulta el avance de tu vehículo desde tu celular, sin registrarte.</p></div>
+                        </div>
+                        <div class="bg-white/10 rounded-lg p-3 flex items-start gap-2.5">
+                            <i data-lucide="shield-check" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                            <div><p class="font-semibold text-sm">Técnicos certificados</p><p class="text-white/75 text-xs">Cada trabajo se asigna al especialista adecuado.</p></div>
+                        </div>
+                        <div class="bg-white/10 rounded-lg p-3 flex items-start gap-2.5">
+                            <i data-lucide="camera" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                            <div><p class="font-semibold text-sm">Transparencia total</p><p class="text-white/75 text-xs">Documentamos con fotos el estado y avance de tu vehículo.</p></div>
+                        </div>
+                        <div class="bg-white/10 rounded-lg p-3 flex items-start gap-2.5">
+                            <i data-lucide="badge-check" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                            <div><p class="font-semibold text-sm">Garantía en el servicio</p><p class="text-white/75 text-xs">Respaldamos la calidad de nuestro trabajo.</p></div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="bg-white/15 rounded-xl p-4">
+                        <p class="font-bold text-base sm:text-lg mb-1">🎉 Esta es tu visita número @d.Cliente.NumeroVisitas con nosotros</p>
+                        @if (d.Cliente.PrimeraVisita.HasValue)
+                        {
+                            <p class="text-white/85 text-sm">Eres cliente desde @d.Cliente.PrimeraVisita.Value.ToString("MMMM yyyy", new System.Globalization.CultureInfo("es-MX")). ¡Gracias por tu confianza continua!</p>
+                        }
+                        @if (d.VisitaAnterior != null)
+                        {
+                            <p class="text-white/75 text-xs mt-2">Tu visita anterior fue el @d.VisitaAnterior.FechaRecepcion.ToString("dd/MM/yyyy") @(!string.IsNullOrEmpty(d.VisitaAnterior.Vehiculo) ? $"con tu {d.VisitaAnterior.Vehiculo}" : "") (folio @d.VisitaAnterior.Folio).</p>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Resumen del servicio -->
+            <div class="card card-body mb-5 entrega-card">
+                <h3 class="font-bold text-text-1 text-lg mb-3 flex items-center gap-2"><i data-lucide="car" class="w-5 h-5 text-primary"></i> Resumen de tu servicio</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-3">
+                    <div>
+                        <p class="text-[11px] text-text-3 uppercase font-semibold">Folio</p>
+                        <p class="font-bold text-text-1">@d.Orden.Folio</p>
+                    </div>
+                    <div>
+                        <p class="text-[11px] text-text-3 uppercase font-semibold">Vehículo</p>
+                        <p class="font-bold text-text-1">@(d.Vehiculo != null ? $"{d.Vehiculo.Marca} {d.Vehiculo.Modelo} {d.Vehiculo.Anio}" : "—")</p>
+                        <p class="text-xs text-text-3">@d.Vehiculo?.Placas</p>
+                    </div>
+                    <div>
+                        <p class="text-[11px] text-text-3 uppercase font-semibold">Ingreso</p>
+                        <p class="font-bold text-text-1">@d.Orden.FechaRecepcion.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    <div>
+                        <p class="text-[11px] text-text-3 uppercase font-semibold">Entrega</p>
+                        <p class="font-bold text-text-1">@(d.Orden.FechaEntrega?.ToString("dd/MM/yyyy") ?? "Hoy")</p>
+                        @if (d.Orden.DuracionDias.HasValue)
+                        {
+                            <p class="text-xs text-text-3">@d.Orden.DuracionDias.Value día(s) de servicio</p>
+                        }
+                    </div>
+                </div>
+                @if (d.Orden.EntregadoATiempo.HasValue)
+                {
+                    if (d.Orden.EntregadoATiempo.Value)
+                    {
+                        <span class="badge bg-emerald-100 text-emerald-700">✓ Entregado en tiempo, tal como te lo prometimos</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-amber-100 text-amber-700">Tu vehículo tardó un poco más de lo previsto — gracias por tu paciencia</span>
+                    }
+                }
+                @if (!string.IsNullOrWhiteSpace(d.Orden.ProblemaReportado))
+                {
+                    <div class="mt-3 pt-3 border-t border-border-ui">
+                        <p class="text-[11px] text-text-3 uppercase font-semibold mb-1">Lo que nos comentaste</p>
+                        <p class="text-sm text-text-2">@d.Orden.ProblemaReportado</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Qué le hicimos -->
+            <div class="card card-body mb-5 entrega-card">
+                <h3 class="font-bold text-text-1 text-lg mb-3 flex items-center gap-2"><i data-lucide="clipboard-check" class="w-5 h-5 text-primary"></i> Esto fue lo que le hicimos a tu vehículo</h3>
+                <div class="space-y-1.5 mb-3">
+                    @foreach (var c in d.Conceptos)
+                    {
+                        <div class="flex items-center justify-between py-1.5 border-b border-border-ui last:border-0">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <i data-lucide="@(c.Tipo == TipoConceptoOrden.ManoObra ? "wrench" : "package")" class="w-4 h-4 text-text-3 shrink-0"></i>
+                                <div class="min-w-0">
+                                    <p class="text-sm text-text-1 truncate">@c.Descripcion</p>
+                                    @if (!string.IsNullOrEmpty(c.Especialidad))
+                                    {
+                                        <span class="badge bg-indigo-100 text-indigo-700 text-[10px]">@c.Especialidad</span>
+                                    }
+                                </div>
+                            </div>
+                            <span class="text-sm font-semibold text-text-1 shrink-0 ml-2">@c.Importe.ToString("C2")</span>
+                        </div>
+                    }
+                    @if (!d.Conceptos.Any())
+                    {
+                        <p class="text-sm text-text-3 text-center py-4">Sin conceptos registrados.</p>
+                    }
+                </div>
+                <div class="flex justify-end">
+                    <div class="w-56 text-sm space-y-1">
+                        <div class="flex justify-between"><span class="text-text-3">Subtotal</span><span>@d.Orden.Subtotal.ToString("C2")</span></div>
+                        @if (d.Orden.Descuento > 0)
+                        {
+                            <div class="flex justify-between text-emerald-600"><span>Descuento</span><span>-@d.Orden.Descuento.ToString("C2")</span></div>
+                        }
+                        <div class="flex justify-between"><span class="text-text-3">IVA</span><span>@d.Orden.Iva.ToString("C2")</span></div>
+                        <div class="flex justify-between font-bold text-base border-t border-border-ui pt-1"><span>Total</span><span>@d.Orden.Total.ToString("C2")</span></div>
+                    </div>
+                </div>
+            </div>
+
+            @if (d.Mecanicos.Any())
+            {
+                <div class="card card-body mb-5 entrega-card">
+                    <h3 class="font-bold text-text-1 text-lg mb-3 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5 text-primary"></i> Quién atendió tu vehículo</h3>
+                    <div class="flex flex-wrap gap-3">
+                        @foreach (var m in d.Mecanicos)
+                        {
+                            <div class="flex items-center gap-2 bg-base rounded-full pl-1.5 pr-3.5 py-1.5 border border-border-ui">
+                                <div class="w-7 h-7 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center shrink-0">
+                                    @(m.Nombre.Length > 0 ? m.Nombre[0].ToString().ToUpper() : "?")
+                                </div>
+                                <div>
+                                    <p class="text-xs font-semibold text-text-1 leading-tight">@m.Nombre</p>
+                                    @if (!string.IsNullOrEmpty(m.Puesto))
+                                    {
+                                        <p class="text-[10px] text-text-3 leading-tight">@m.Puesto</p>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (d.Fotos.Any())
+            {
+                <div class="card card-body mb-5 entrega-card">
+                    <h3 class="font-bold text-text-1 text-lg mb-3 flex items-center gap-2"><i data-lucide="camera" class="w-5 h-5 text-primary"></i> Evidencia fotográfica</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        @foreach (var f in d.Fotos)
+                        {
+                            <div class="rounded-lg overflow-hidden border border-border-ui">
+                                <img src="@f.Url" class="w-full h-28 object-cover" />
+                                @if (!string.IsNullOrEmpty(f.Nota))
+                                {
+                                    <p class="text-[10px] p-1 text-text-3 truncate">@f.Nota</p>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (d.DanosRegistrados > 0)
+            {
+                <div class="rounded-xl bg-blue-50 border border-blue-200 p-3.5 mb-5 flex items-start gap-2.5 entrega-card">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-blue-600 mt-0.5 shrink-0"></i>
+                    <p class="text-xs text-blue-800">Por transparencia, documentamos @d.DanosRegistrados punto(s) de daño preexistente en tu vehículo antes de iniciar el servicio.</p>
+                </div>
+            }
+
+            <!-- Encuesta de satisfacción -->
+            <div class="card card-body entrega-card">
+                <h3 class="font-bold text-text-1 text-lg mb-1 flex items-center gap-2"><i data-lucide="heart" class="w-5 h-5 text-primary"></i> ¿Cómo fue tu experiencia?</h3>
+
+                @if (Model.Mensaje != null)
+                {
+                    <div class="alert alert-success my-3">@Model.Mensaje</div>
+                }
+
+                @if (d.Encuesta != null)
+                {
+                    <div class="text-center py-4">
+                        <div class="text-3xl mb-1">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <span class="@(i <= d.Encuesta.Calificacion ? "text-amber-400" : "text-gray-200")">★</span>
+                            }
+                        </div>
+                        <p class="text-sm text-text-3">¡Gracias por calificarnos! Tu opinión ya quedó registrada.</p>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-text-3 text-sm mb-3">Tu opinión nos ayuda a mejorar cada día.</p>
+                    <form method="post" asp-page-handler="Encuesta" class="space-y-3">
+                        <div class="flex gap-1.5 justify-center text-4xl" id="stars">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <span data-star="@i" class="cursor-pointer star text-gray-200 transition-colors">★</span>
+                            }
+                        </div>
+                        <input type="hidden" name="calificacion" id="calificacionInput" value="5" />
+                        <textarea name="comentario" rows="2" placeholder="Cuéntanos más (opcional)" class="w-full px-3 py-2 rounded-lg border border-border-ui text-sm max-w-md mx-auto block"></textarea>
+                        <button type="submit" class="btn bg-primary text-white mx-auto flex">Enviar calificación</button>
+                    </form>
+                }
+            </div>
+
+            <p class="text-center text-text-3 text-xs mt-6">
+                @(empresa?.NombreComercial ?? "Nuestro taller") — Gracias por confiar en nosotros. 🚗💙
+            </p>
+        </div>
+    }
+
+    <script>
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        var stars = document.querySelectorAll('.star');
+        function pintarEstrellas(valor) {
+            stars.forEach(function (s) {
+                s.classList.toggle('text-amber-400', parseInt(s.dataset.star, 10) <= valor);
+                s.classList.toggle('text-gray-200', parseInt(s.dataset.star, 10) > valor);
+            });
+        }
+        pintarEstrellas(5);
+        stars.forEach(function (star) {
+            star.addEventListener('click', function () {
+                document.getElementById('calificacionInput').value = this.dataset.star;
+                pintarEstrellas(parseInt(this.dataset.star, 10));
+            });
+        });
+
+        var btnFullscreen = document.getElementById('btnFullscreen');
+        if (btnFullscreen) {
+            btnFullscreen.addEventListener('click', function () {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(function () { });
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.Dashboard.OperativoModel
+@using EnfoqueAutomotriz.Domain.Ordenes
+@using EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Tablero Operativo";
+}
+
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="text-xl font-bold text-text-1 flex items-center gap-2">
+            Tablero Operativo
+            <span class="inline-flex items-center gap-1 text-[11px] font-normal text-emerald-600">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> En vivo
+            </span>
+        </h2>
+        <p class="text-text-3 text-sm">Unidades activas por etapa y estatus de cotización, actualizado automáticamente.</p>
+    </div>
+    <div class="flex items-center gap-2">
+        <form method="get" class="flex items-center gap-2">
+            <select name="sucursalId" onchange="this.form.submit()" class="h-9 px-3 rounded-lg border border-border-ui text-sm">
+                <option value="">Todas las sucursales</option>
+                @foreach (var s in Model.Sucursales)
+                {
+                    <option value="@s.Id" selected="@(Model.SucursalId == s.Id)">@s.Nombre</option>
+                }
+            </select>
+        </form>
+        <span id="ultimaActualizacion" class="text-[11px] text-text-3"></span>
+        <button type="button" id="btnActualizarAhora" class="btn bg-white border border-border-ui text-xs h-9">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Actualizar
+        </button>
+    </div>
+</div>
+
+<partial name="_Ayuda" model="@(new AyudaModel {
+    PaginaId = "tablero-operativo",
+    Titulo = "¿Qué muestra esta pantalla?",
+    QueHace = "Tablero tipo kanban con todas las unidades activas (no entregadas ni canceladas) agrupadas por su etapa actual, con el estatus de la cotización de cada una.",
+    Pasos = new List<PasoAyuda> {
+        new(1, "Las columnas van de izquierda a derecha en el orden del proceso: Recibido → Diagnóstico → Esperando aprobación → En reparación → Listo para entregar."),
+        new(2, "Cada tarjeta muestra folio, cliente, vehículo y cuántos días lleva en el taller."),
+        new(3, "El badge de color te dice si la cotización ya se envió, fue aprobada o rechazada, o si aún no aplica."),
+        new(4, "El tablero se actualiza solo cada 20 segundos — no necesitas recargar la página. Usa 'Actualizar' para forzar un refresco inmediato."),
+        new(5, "Haz clic en cualquier tarjeta para ir directo al detalle de esa orden.")
+    },
+    Conexiones = new List<ConexionAyuda> {
+        new("Órdenes de Servicio", "/OrdenesServicio/Index", "wrench", "Ver el listado completo con filtros"),
+        new("Solicitudes de Refacciones", "/Almacen/Solicitudes", "clipboard-list", "Ver qué refacciones necesita cada unidad en proceso")
+    }
+})" />
+
+<div id="tableroColumnas" data-sucursal-id="@Model.SucursalId" class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-3">
+    <!-- Las columnas se renderizan en JS (renderTablero) para que el SSR inicial y el polling compartan la misma lógica -->
+</div>
+
+<template id="tplColumna">
+    <div class="card flex flex-col">
+        <div class="card-header flex items-center justify-between !py-2">
+            <h3 class="font-semibold text-text-1 text-sm col-titulo"></h3>
+            <span class="badge bg-base text-text-2 col-contador"></span>
+        </div>
+        <div class="card-body !p-2 space-y-2 col-cards" style="max-height: 70vh; overflow-y: auto;"></div>
+    </div>
+</template>
+
+<template id="tplCard">
+    <a class="block rounded-lg border border-border-ui p-2.5 hover:shadow-md hover:border-primary/40 transition-all bg-white">
+        <div class="flex items-center justify-between mb-1">
+            <span class="font-semibold text-xs text-primary card-folio"></span>
+            <span class="text-[10px] text-text-3 card-dias"></span>
+        </div>
+        <p class="text-xs font-medium text-text-1 card-cliente"></p>
+        <p class="text-[11px] text-text-3 card-vehiculo"></p>
+        <p class="text-[10px] text-text-3 card-sucursal"></p>
+        <div class="mt-1.5 card-cotizacion"></div>
+    </a>
+</template>
+
+<script>
+    const columnasDef = [
+        { estado: 1, nombre: 'Recibido', color: '#94A3B8' },
+        { estado: 2, nombre: 'En diagnóstico', color: '#F59E0B' },
+        { estado: 3, nombre: 'Esperando aprobación', color: '#FB923C' },
+        { estado: 4, nombre: 'En reparación', color: '#3B82F6' },
+        { estado: 5, nombre: 'Listo para entregar', color: '#10B981' }
+    ];
+
+    const cotizacionInfo = {
+        0: { label: 'Sin cotización', clase: 'bg-gray-100 text-gray-600' },
+        1: { label: '⏳ Cotización enviada', clase: 'bg-amber-100 text-amber-700' },
+        2: { label: '✓ Cotización aprobada', clase: 'bg-emerald-100 text-emerald-700' },
+        3: { label: '✗ Cotización rechazada', clase: 'bg-red-100 text-red-700' }
+    };
+
+    function jwtHeader() {
+        const jwt = document.querySelector('meta[name="jwt-token"]')?.content ?? '';
+        return { 'Authorization': 'Bearer ' + jwt };
+    }
+
+    function diasDesde(fechaIso) {
+        const dias = (Date.now() - new Date(fechaIso).getTime()) / 86400000;
+        if (dias < 1) return 'Hoy';
+        return Math.floor(dias) + ' día' + (Math.floor(dias) === 1 ? '' : 's');
+    }
+
+    function renderTablero(ordenes) {
+        const contenedor = document.getElementById('tableroColumnas');
+        contenedor.innerHTML = '';
+        const tplColumna = document.getElementById('tplColumna');
+        const tplCard = document.getElementById('tplCard');
+
+        columnasDef.forEach(col => {
+            const nodo = tplColumna.content.cloneNode(true);
+            const ordenesCol = ordenes.filter(o => o.estado === col.estado).sort((a, b) => new Date(a.fechaRecepcion) - new Date(b.fechaRecepcion));
+
+            nodo.querySelector('.col-titulo').textContent = col.nombre;
+            nodo.querySelector('.col-titulo').style.borderLeft = '3px solid ' + col.color;
+            nodo.querySelector('.col-titulo').style.paddingLeft = '6px';
+            nodo.querySelector('.col-contador').textContent = ordenesCol.length;
+
+            const cardsContainer = nodo.querySelector('.col-cards');
+            if (ordenesCol.length === 0) {
+                const vacio = document.createElement('p');
+                vacio.className = 'text-[11px] text-text-3 text-center py-4';
+                vacio.textContent = 'Sin unidades aquí.';
+                cardsContainer.appendChild(vacio);
+            } else {
+                ordenesCol.forEach(o => {
+                    const card = tplCard.content.cloneNode(true);
+                    const a = card.querySelector('a');
+                    a.href = '/OrdenesServicio/Detail/' + o.id;
+                    card.querySelector('.card-folio').textContent = o.folio;
+                    card.querySelector('.card-dias').textContent = diasDesde(o.fechaRecepcion);
+                    card.querySelector('.card-cliente').textContent = o.cliente?.nombre ?? '';
+                    card.querySelector('.card-vehiculo').textContent = (o.vehiculo ? (o.vehiculo.marca + ' ' + o.vehiculo.modelo + ' — ' + o.vehiculo.placas) : '');
+                    card.querySelector('.card-sucursal').textContent = o.sucursal?.nombre ?? '';
+
+                    const cot = cotizacionInfo[o.estadoCotizacion] ?? cotizacionInfo[0];
+                    const span = document.createElement('span');
+                    span.className = 'badge ' + cot.clase + ' text-[10px]';
+                    span.textContent = cot.label;
+                    card.querySelector('.card-cotizacion').appendChild(span);
+
+                    cardsContainer.appendChild(card);
+                });
+            }
+
+            contenedor.appendChild(nodo);
+        });
+
+        lucide.createIcons();
+    }
+
+    let segundosDesdeActualizacion = 0;
+    const ultimaActualizacionEl = document.getElementById('ultimaActualizacion');
+
+    function tickReloj() {
+        segundosDesdeActualizacion++;
+        ultimaActualizacionEl.textContent = 'Actualizado hace ' + segundosDesdeActualizacion + 's';
+    }
+
+    async function actualizarTablero() {
+        const sucursalId = document.getElementById('tableroColumnas').dataset.sucursalId;
+        const qs = sucursalId ? ('?sucursalId=' + sucursalId) : '';
+        try {
+            const resp = await fetch('/api/v1/ordenes-servicio' + qs, { headers: jwtHeader() });
+            const data = await resp.json();
+            const ordenes = (data.result || []).filter(o => o.estado !== 6 && o.estado !== 7); // excluye Entregado/Cancelado
+            renderTablero(ordenes);
+            segundosDesdeActualizacion = 0;
+        } catch (err) {
+            console.error('Error actualizando tablero', err);
+        }
+    }
+
+    // Render inicial con los datos ya cargados por el servidor (evita parpadeo al entrar)
+    const ordenesIniciales = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Ordenes, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles }));
+    renderTablero(ordenesIniciales.map(o => ({ ...o, estado: typeof o.estado === 'string' ? { Recibido: 1, Diagnostico: 2, EsperandoAprobacion: 3, EnReparacion: 4, Listo: 5, Entregado: 6, Cancelado: 7 }[o.estado] : o.estado, estadoCotizacion: typeof o.estadoCotizacion === 'string' ? { NoAplica: 0, Pendiente: 1, Aprobada: 2, Rechazada: 3 }[o.estadoCotizacion] : o.estadoCotizacion })));
+
+    document.getElementById('btnActualizarAhora').addEventListener('click', actualizarTablero);
+    setInterval(tickReloj, 1000);
+    setInterval(actualizarTablero, 20000);
+</script>

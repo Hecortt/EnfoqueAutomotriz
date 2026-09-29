@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+@inject EnfoqueAutomotriz.UI.Services.IEmpresaContextService _empresaCtxLogin
+@{
+    var _empresaLogin = await _empresaCtxLogin.GetAsync();
+    var _logoLogin = _empresaLogin.LogoUrl != null ? EnfoqueAutomotriz.UI.Helpers.FotoUrlHelper.ToProxy(_empresaLogin.LogoUrl) : null;
+}
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - @_empresaLogin.NombreComercial</title>
+    @if (_logoLogin != null)
+    {
+        <link rel="icon" type="image/png" href="@_logoLogin" />
+    }
+    else
+    {
+        <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
+    }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+</head>
+<body class="min-h-screen antialiased">
+    @RenderBody()
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,80 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.Compras.IndexModel
+@{
+    ViewData["Title"] = "Compras";
+}
+
+<h2 class="text-xl font-bold text-text-1 mb-4">Compras</h2>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="lg:col-span-2 card">
+        <table class="w-full text-sm">
+            <thead class="bg-base text-text-3 text-xs uppercase">
+                <tr>
+                    <th class="text-left px-2.5 py-1.5">Folio</th>
+                    <th class="text-left px-2.5 py-1.5">Proveedor</th>
+                    <th class="text-left px-2.5 py-1.5">Estado</th>
+                    <th class="text-right px-2.5 py-1.5">Total</th>
+                    <th class="text-left px-2.5 py-1.5"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var o in Model.Ordenes)
+                {
+                    <tr class="border-t border-border-ui hover:bg-base/60 transition-colors">
+                        <td class="px-2.5 py-1.5 font-medium">@o.Folio</td>
+                        <td class="px-2.5 py-1.5">@o.Proveedor?.Nombre</td>
+                        <td class="px-2.5 py-1.5"><span class="badge bg-slate-100 text-slate-700">@o.Estado</span></td>
+                        <td class="px-2.5 py-1.5 text-right">@o.Total.ToString("C2")</td>
+                        <td class="px-2.5 py-1.5">
+                            @if (o.Estado != EnfoqueAutomotriz.Domain.Compras.EstadoOrdenCompra.RecibidaCompleta)
+                            {
+                                <form method="post" asp-page-handler="Recibir">
+                                    <input type="hidden" name="OrdenId" value="@o.Id" />
+                                    <button type="submit" class="text-primary text-xs font-medium">Marcar recibida</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card card-body">
+        <h3 class="font-semibold text-text-1 mb-3">Nueva orden de compra</h3>
+        <form method="post" asp-page-handler="Crear" class="space-y-2">
+            <select name="ProveedorId" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                @foreach (var p in Model.Proveedores)
+                {
+                    <option value="@p.Id">@p.Nombre</option>
+                }
+            </select>
+            <select name="SucursalId" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                @foreach (var s in Model.Sucursales)
+                {
+                    <option value="@s.Id">@s.Nombre</option>
+                }
+            </select>
+            <select name="RefaccionId" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                @foreach (var r in Model.Refacciones)
+                {
+                    <option value="@r.Id">@r.Nombre (stock: @r.StockActual)</option>
+                }
+            </select>
+            <div class="grid grid-cols-2 gap-2">
+                <input name="Cantidad" type="number" placeholder="Cantidad" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+                <input name="CostoUnitario" type="number" step="0.01" placeholder="Costo unit." class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <button type="submit" class="btn bg-primary text-white w-full">Crear orden</button>
+        </form>
+
+        <hr class="my-4 border-border-ui" />
+        <h3 class="font-semibold text-text-1 mb-3">Nuevo proveedor</h3>
+        <form method="post" asp-page-handler="CrearProveedor" class="space-y-2">
+            <input name="Nombre" placeholder="Nombre" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <input name="Telefono" placeholder="Teléfono" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <button type="submit" class="btn bg-white border border-border-ui w-full">Guardar proveedor</button>
+        </form>
+    </div>
+</div>

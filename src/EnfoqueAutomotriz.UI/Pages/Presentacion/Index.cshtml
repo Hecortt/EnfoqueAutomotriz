@@ -1,0 +1,475 @@
+﻿@page
+@model EnfoqueAutomotriz.UI.Pages.Presentacion.IndexModel
+@{
+    Layout = null;
+    var nombreEmpresa = Model.Empresa?.NombreComercial ?? "tu taller";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presentación Ejecutiva — EnfoqueAutomotriz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <style>
+        html, body { height: 100%; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0B1120;
+            color: #fff;
+            overflow: hidden;
+        }
+        .deck {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+        .slide {
+            height: 100vh;
+            width: 100%;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 1.5rem;
+            position: relative;
+        }
+        .slide-inner { max-width: 1100px; width: 100%; }
+        @@keyframes riseIn {
+            0% { opacity: 0; transform: translateY(24px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .slide.active .fx { animation: riseIn 0.7s ease-out both; }
+        .fx-d1 { animation-delay: .05s !important; }
+        .fx-d2 { animation-delay: .15s !important; }
+        .fx-d3 { animation-delay: .25s !important; }
+        .fx-d4 { animation-delay: .35s !important; }
+
+        .dots { position: fixed; right: 22px; top: 50%; transform: translateY(-50%); z-index: 40; display: flex; flex-direction: column; gap: 10px; }
+        .dot { width: 9px; height: 9px; border-radius: 999px; background: rgba(255,255,255,.25); cursor: pointer; transition: all .2s; }
+        .dot.active { background: #fff; height: 26px; }
+
+        .bg-hero { background: radial-gradient(circle at 30% 20%, #312E81 0%, #0B1120 55%); }
+        .bg-problema { background: radial-gradient(circle at 70% 30%, #3F1D1D 0%, #0B1120 55%); }
+        .bg-solucion { background: radial-gradient(circle at 30% 70%, #1E3A5F 0%, #0B1120 55%); }
+        .bg-features { background: radial-gradient(circle at 70% 20%, #1E293B 0%, #0B1120 55%); }
+        .bg-impacto { background: radial-gradient(circle at 50% 50%, #14532D 0%, #0B1120 55%); }
+        .bg-escala { background: radial-gradient(circle at 30% 30%, #4C1D95 0%, #0B1120 55%); }
+        .bg-roadmap { background: radial-gradient(circle at 70% 70%, #164E63 0%, #0B1120 55%); }
+        .bg-cierre { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); }
+
+        .glass { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); backdrop-filter: blur(6px); }
+        .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; pointer-events: none; }
+        .topbar > * { pointer-events: auto; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <a href="/Index" class="btn bg-white/10 border border-white/20 text-white text-xs h-9 hover:bg-white/20">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i> Salir
+        </a>
+        <button type="button" id="btnFullscreen" class="btn bg-white/10 border border-white/20 text-white text-xs h-9 hover:bg-white/20">
+            <i data-lucide="maximize" class="w-3.5 h-3.5"></i> Pantalla completa
+        </button>
+    </div>
+
+    <div class="dots" id="dots"></div>
+
+    <div class="deck" id="deck">
+
+        <!-- 1. HERO -->
+        <section class="slide bg-hero" data-title="Inicio">
+            <div class="slide-inner text-center">
+                <p class="fx text-indigo-300 font-semibold tracking-[0.3em] text-xs sm:text-sm uppercase mb-5">Presentación ejecutiva</p>
+                <h1 class="fx fx-d1 text-5xl sm:text-7xl font-black leading-none mb-6">Enfoque<span class="text-indigo-400">Automotriz</span></h1>
+                <p class="fx fx-d2 text-lg sm:text-2xl text-white/80 max-w-2xl mx-auto">La plataforma que controla, agenda y automatiza la operación de @nombreEmpresa — de principio a fin.</p>
+                <div class="fx fx-d3 mt-10 flex items-center justify-center gap-2 text-white/50 text-sm">
+                    <i data-lucide="mouse-pointer-click" class="w-4 h-4"></i> Desplázate para continuar
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. EL PROBLEMA -->
+        <section class="slide bg-problema" data-title="El problema">
+            <div class="slide-inner">
+                <p class="fx text-red-300 font-semibold tracking-widest text-xs sm:text-sm uppercase mb-3 text-center">El problema hoy</p>
+                <h2 class="fx fx-d1 text-3xl sm:text-5xl font-bold text-center mb-10">Procesos manuales que cuestan tiempo y clientes</h2>
+                <div class="fx fx-d2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="glass rounded-2xl p-5 flex items-start gap-3">
+                        <i data-lucide="phone-call" class="w-6 h-6 text-red-300 shrink-0 mt-1"></i>
+                        <div><p class="font-semibold">Seguimiento telefónico</p><p class="text-white/60 text-sm">Asesores llamando para avisar estatus, en vez de atender más clientes.</p></div>
+                    </div>
+                    <div class="glass rounded-2xl p-5 flex items-start gap-3">
+                        <i data-lucide="file-x-2" class="w-6 h-6 text-red-300 shrink-0 mt-1"></i>
+                        <div><p class="font-semibold">Cotizaciones en papel</p><p class="text-white/60 text-sm">Aprobaciones lentas y errores de captura entre recepción y almacén.</p></div>
+                    </div>
+                    <div class="glass rounded-2xl p-5 flex items-start gap-3">
+                        <i data-lucide="eye-off" class="w-6 h-6 text-red-300 shrink-0 mt-1"></i>
+                        <div><p class="font-semibold">Cero visibilidad</p><p class="text-white/60 text-sm">Nadie sabe qué vehículo se va a retrasar hasta que el cliente reclama.</p></div>
+                    </div>
+                    <div class="glass rounded-2xl p-5 flex items-start gap-3">
+                        <i data-lucide="trending-down" class="w-6 h-6 text-red-300 shrink-0 mt-1"></i>
+                        <div><p class="font-semibold">Reportes tardíos</p><p class="text-white/60 text-sm">Las decisiones de dirección llegan semanas después de que el dato importaba.</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. COMPARACIÓN: AISLADO VS UNIFICADO -->
+        <section class="slide bg-solucion" data-title="Comparación">
+            <div class="slide-inner">
+                <p class="fx text-amber-300 font-semibold tracking-widest text-xs sm:text-sm uppercase mb-3 text-center">Comparación ilustrativa</p>
+                <h2 class="fx fx-d1 text-3xl sm:text-5xl font-bold text-center mb-3">Sistemas aislados vs. todo en un solo lugar</h2>
+                <p class="fx fx-d2 text-white/60 text-center max-w-2xl mx-auto mb-8 text-sm">Un taller sin herramienta de gestión (o con hojas de cálculo, WhatsApp y cuadernos sueltos) contra un taller operando con EnfoqueAutomotriz. Índice de 0 a 100, referencial.</p>
+                <div class="fx fx-d3 glass rounded-2xl p-5 sm:p-6">
+                    <canvas id="chartComparacion" height="230"></canvas>
+                </div>
+                <div class="fx fx-d4 flex items-center justify-center gap-6 mt-4 text-xs text-white/60">
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block bg-slate-400"></span> Sin herramienta / sistemas aislados</span>
+                    <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#6366F1"></span> EnfoqueAutomotriz</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. LA SOLUCIÓN -->
+        <section class="slide bg-solucion" data-title="La solución">
+            <div class="slide-inner">
+                <p class="fx text-blue-300 font-semibold tracking-widest text-xs sm:text-sm uppercase mb-3 text-center">La solución</p>
+                <h2 class="fx fx-d1 text-3xl sm:text-5xl font-bold text-center mb-12">Un solo sistema para todo el ciclo del servicio</h2>
+                <div class="fx fx-d2 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6 sm:gap-2">
+                    @{
+                        var pasos = new (string icono, string titulo)[] {
+                            ("clipboard-list", "Recepción"),
+                            ("file-check-2", "Cotización"),
+                            ("package", "Refacciones"),
+                            ("wrench", "Mano de obra"),
+                            ("party-popper", "Entrega")
+                        };
+                    }
+                    @for (int i = 0; i < pasos.Length; i++)
+                    {
+                        <div class="flex sm:flex-col items-center gap-3 sm:gap-2 flex-1">
+                            <div class="w-14 h-14 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shrink-0">
+                                <i data-lucide="@pasos[i].icono" class="w-6 h-6 text-blue-300"></i>
+                            </div>
+                            <p class="font-semibold text-sm sm:text-center">@pasos[i].titulo</p>
+                        </div>
+                        @if (i < pasos.Length - 1)
+                        {
+                            <div class="hidden sm:flex items-center text-blue-400/40 mt-6"><i data-lucide="arrow-right" class="w-5 h-5"></i></div>
+                        }
+                    }
+                </div>
+                <p class="fx fx-d3 text-white/60 text-center mt-10 max-w-2xl mx-auto">Todo capturado una sola vez, visible para todos, sin reconstruir el estatus a mano.</p>
+            </div>
+        </section>
+
+        <!-- 5. AGENDA + PORTAL DE ENTREGA -->
+        <section class="slide bg-features" data-title="Agenda y Portal">
+            <div class="slide-inner">
+                <p class="fx text-slate-300 font-semibold tracking-widest text-xs sm:text-sm uppercase mb-3 text-center">Ya construido y funcionando</p>
+                <h2 class="fx fx-d1 text-3xl sm:text-5xl font-bold text-center mb-10">Cero llamadas para dar seguimiento</h2>
+                <div class="fx fx-d2 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div class="glass rounded-2xl p-6">
+                        <i data-lucide="calendar-days" class="w-8 h-8 text-indigo-300 mb-3"></i>
+                        <p class="font-bold text-lg mb-1">Agenda centralizada</p>
+                        <p class="text-white/60 text-sm">Un calendario con todos los ingresos, entregas comprometidas y entregas realizadas de todas las sucursales. Las fechas vencidas se marcan en rojo automáticamente.</p>
+                    </div>
+                    <div class="glass rounded-2xl p-6">
+                        <i data-lucide="heart-handshake" class="w-8 h-8 text-emerald-300 mb-3"></i>
+                        <p class="font-bold text-lg mb-1">Portal de Entrega</p>
+                        <p class="text-white/60 text-sm">El cliente ve el resumen de su servicio, quién lo atendió y califica su experiencia — sin cuenta, sin llamada, con un solo link.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. IMPACTO EN NÚMEROS -->
+        <section class="slide bg-impacto" data-title="Impacto">
+            <div class="slide-inner">
+                <p class="fx text-emerald-300 font-semibold tracking-widest text-xs sm:text-sm uppercase mb-3 text-center">Impacto en el negocio</p>
+                <h2 class="fx fx-d1 text-3xl sm:text-5xl font-bold text-center mb-12">Menos costo operativo, más control</h2>
+                <div class="fx fx-d2 grid grid-cols-1 sm:grid-cols-3 gap-5 text-center">
+                    <div class="glass rounded-2xl p-6">
+                        <i data-lucide="clock" class="w-7 h-7 text-emerald-300 mx-auto mb-2"></i>
+                        <p class="font-bold text-lg mb-1">Menos horas administrativas</p>
+                        <p class="text-white/60 text-sm">por orden atendida, sin captura duplicada ni seguimiento manual.</p>
+                    </div>
+                    <div class="glass rounded-2xl p-6">
+                        <i data-lucide="shield-check" class="w-7 h-7 text-emerald-300 mx-auto mb-2"></i>
+                        <p class="font-bold text-lg mb-1">Menos retrasos y reclamos</p>
+                        <p class="text-white/60 text-sm">gracias a la visibilidad temprana de la agenda — menos garantías absorbidas.</p>
+                    </div>
+                    <div class="glass rounded-2xl p-6">
+                        <i data-lucide="gauge" class="w-7 h-7 text-emerald-300 mx-auto mb-2"></i>
+                        <p class="font-bold text-lg mb-1">Decisiones en tiempo real</p>
+                        <p class="text-white/60 text-sm">KPIs y reportes al instante, no al cierre de mes.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. RESULTADOS REALES -->
+        <section class="slide bg-impacto" data-title="Resultados reales">
+            <div class="slide-inner">
+                <p class="fx text-emerald-300 font-semibold tracking-widest text-xs sm:text-sm uppercase mb-3 text-center">Datos reales de la plataforma</p>
+                <h2 class="fx fx-d1 text-3xl sm:text-5xl font-bold text-center mb-8">No son promesas, son números del sistema</h2>
+
+                @if (Model.Resumen == null)
+                {
+                    <p class="fx text-white/60 text-center">No se pudieron cargar los indicadores en este momento.</p>
+                }
+                else
+                {
+                    var r = Model.Resumen;
+                    <div class="fx fx-d2 grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6 text-center">
+                        <div class="glass rounded-2xl p-4">
+                            <p class="text-2xl sm:text-3xl font-black text-emerald-300" data-count-to="@r.TotalGestionado.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-prefix="$" data-decimals="0">$0</p>
+                            <p class="text-white/60 text-xs mt-1">Gestionado en la plataforma</p>
+                        </div>
+                        <div class="glass rounded-2xl p-4">
+                            <p class="text-2xl sm:text-3xl font-black text-blue-300" data-count-to="@r.TotalOrdenes">0</p>
+                            <p class="text-white/60 text-xs mt-1">Órdenes procesadas</p>
+                        </div>
+                        <div class="glass rounded-2xl p-4">
+                            <p class="text-2xl sm:text-3xl font-black text-amber-300" data-count-to="@((r.PorcentajeATiempo ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture))" data-suffix="%" data-decimals="1">0%</p>
+                            <p class="text-white/60 text-xs mt-1">Entregas a tiempo</p>
+                        </div>
+                        <div class="glass rounded-2xl p-4">
+                            <p class="text-2xl sm:text-3xl font-black text-pink-300" data-count-to="@((r.PromedioSatisfaccion ?? 0).ToString(System.Globalization.CultureInfo.InvariantCulture))" data-decimals="1">0</p>
+                            <p class="text-white/60 text-xs mt-1">Satisfacción promedio (de 5) · @r.TotalEncuestas encuestas</p>
+                        </div>
+                    </div>
+                    <div class="fx fx-d3 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div class="glass rounded-2xl p-5">
+                            <p class="text-sm font-semibold text-white/80 mb-2">Dinero gestionado — últimos 6 meses</p>
+                            <canvas id="chartTendencia" height="180"></canvas>
+                        </div>
+                        <div class="glass rounded-2xl p-5">
+                            <p class="text-sm font-semibold text-white/80 mb-2">Satisfacción del cliente — distribución real</p>
+                            <canvas id="chartSatisfaccion" height="180"></canvas>
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+
+        <!-- 8. ESCALABILIDAD -->
+        <section class="slide bg-escala" data-title="Escalabilidad">
+            <div class="slide-inner">
+                <p class="fx text-purple-300 font-semibold tracking-widest text-xs sm:text-sm uppercase mb-3 text-center">Escalabilidad</p>
+                <h2 class="fx fx-d1 text-3xl sm:text-5xl font-bold text-center mb-4">Diseñada para una cadena, no para un taller</h2>
+                <p class="fx fx-d2 text-white/70 text-center max-w-2xl mx-auto mb-10">Arquitectura multi-sucursal: abrir un taller nuevo es dar de alta un tenant más — en minutos, sin comprar otro sistema.</p>
+                <div class="fx fx-d3 grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div class="glass rounded-2xl p-6 text-center">
+                        <i data-lucide="store" class="w-7 h-7 text-purple-300 mx-auto mb-2"></i>
+                        <p class="font-bold mb-1">Básico</p>
+                        <p class="text-white/60 text-sm">Taller pequeño, una especialidad.</p>
+                    </div>
+                    <div class="glass rounded-2xl p-6 text-center border-2 border-purple-400/40">
+                        <i data-lucide="layers" class="w-7 h-7 text-purple-300 mx-auto mb-2"></i>
+                        <p class="font-bold mb-1">Multiespecialidad</p>
+                        <p class="text-white/60 text-sm">Mecánica, hojalatería, eléctrico, diagnóstico.</p>
+                    </div>
+                    <div class="glass rounded-2xl p-6 text-center">
+                        <i data-lucide="network" class="w-7 h-7 text-purple-300 mx-auto mb-2"></i>
+                        <p class="font-bold mb-1">Enterprise</p>
+                        <p class="text-white/60 text-sm">Cadena multi-sucursal completa.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. ROADMAP -->
+        <section class="slide bg-roadmap" data-title="Lo que viene">
+            <div class="slide-inner">
+                <p class="fx text-cyan-300 font-semibold tracking-widest text-xs sm:text-sm uppercase mb-3 text-center">Lo que viene</p>
+                <h2 class="fx fx-d1 text-3xl sm:text-5xl font-bold text-center mb-10">El futuro ya está en construcción</h2>
+                <div class="fx fx-d2 grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div class="glass rounded-2xl p-6">
+                        <i data-lucide="message-circle" class="w-8 h-8 text-green-300 mb-3"></i>
+                        <p class="font-bold text-lg mb-1">Bot de WhatsApp para citas</p>
+                        <p class="text-white/60 text-sm">El cliente agenda su cita, recibe confirmaciones y avisos de estatus directo por WhatsApp — sin que nadie lo llame. La infraestructura de mensajería ya está lista para conectarse.</p>
+                    </div>
+                    <div class="glass rounded-2xl p-6">
+                        <i data-lucide="cog" class="w-8 h-8 text-cyan-300 mb-3"></i>
+                        <p class="font-bold text-lg mb-1">Automatización a la medida</p>
+                        <p class="text-white/60 text-sm">La plataforma está preparada para automatizar cualquier proceso adicional que el negocio necesite: facturación, garantías, campañas de recompra, mantenimiento preventivo y más.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. CIERRE -->
+        <section class="slide bg-cierre" data-title="Cierre">
+            <div class="slide-inner text-center">
+                <i data-lucide="rocket" class="fx w-12 h-12 mx-auto mb-6 text-white/90"></i>
+                <h2 class="fx fx-d1 text-3xl sm:text-6xl font-black mb-6">Menos costo. Más control.<br class="hidden sm:block"/> Una base que escala.</h2>
+                <p class="fx fx-d2 text-white/80 text-lg max-w-xl mx-auto">Gracias.</p>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        var slides = Array.from(document.querySelectorAll('.slide'));
+        var dotsContainer = document.getElementById('dots');
+        var deck = document.getElementById('deck');
+
+        slides.forEach(function (s, i) {
+            var dot = document.createElement('div');
+            dot.className = 'dot' + (i === 0 ? ' active' : '');
+            dot.title = s.dataset.title;
+            dot.addEventListener('click', function () { s.scrollIntoView({ behavior: 'smooth' }); });
+            dotsContainer.appendChild(dot);
+        });
+        var dots = Array.from(dotsContainer.children);
+
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                var idx = slides.indexOf(entry.target);
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    dots.forEach(function (d, i) { d.classList.toggle('active', i === idx); });
+                } else {
+                    entry.target.classList.remove('active');
+                }
+            });
+        }, { root: deck, threshold: 0.6 });
+        slides.forEach(function (s) { observer.observe(s); });
+
+        var btnFullscreen = document.getElementById('btnFullscreen');
+        btnFullscreen.addEventListener('click', function () {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(function () { });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            var current = slides.findIndex(function (s) { return s.classList.contains('active'); });
+            if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+                if (current < slides.length - 1) slides[current + 1].scrollIntoView({ behavior: 'smooth' });
+            } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+                if (current > 0) slides[current - 1].scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // ── Contador animado para los números reales (data-count-to) ──────────
+        function animarContadores() {
+            document.querySelectorAll('[data-count-to]').forEach(function (el) {
+                var target = parseFloat(el.dataset.countTo);
+                if (isNaN(target)) return;
+                var decimals = parseInt(el.dataset.decimals || '0', 10);
+                var prefix = el.dataset.prefix || '';
+                var suffix = el.dataset.suffix || '';
+                var duration = 1200;
+                var startTime = performance.now();
+                function easeOutExpo(t) { return t === 1 ? 1 : 1 - Math.pow(2, -10 * t); }
+                function frame(now) {
+                    var progress = Math.min((now - startTime) / duration, 1);
+                    var valor = target * easeOutExpo(progress);
+                    el.textContent = prefix + valor.toLocaleString('es-MX', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix;
+                    if (progress < 1) requestAnimationFrame(frame);
+                }
+                requestAnimationFrame(frame);
+            });
+        }
+        animarContadores();
+
+        // ── Gráficas (Chart.js) ────────────────────────────────────────────────
+        if (typeof Chart !== 'undefined') {
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = 'rgba(255,255,255,.65)';
+
+            // Comparación ilustrativa: sin herramienta vs EnfoqueAutomotriz
+            var ctxComparacion = document.getElementById('chartComparacion');
+            if (ctxComparacion) {
+                new Chart(ctxComparacion, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Velocidad de respuesta al cliente', 'Visibilidad de retrasos', 'Precisión en cotizaciones', 'Trazabilidad del servicio', 'Satisfacción del cliente'],
+                        datasets: [
+                            { label: 'Sin herramienta / aislado', data: [30, 20, 40, 25, 45], backgroundColor: 'rgba(148,163,184,0.5)', borderRadius: 6 },
+                            { label: 'EnfoqueAutomotriz', data: [90, 95, 92, 96, 88], backgroundColor: '#6366F1', borderRadius: 6 }
+                        ]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,.08)' }, ticks: { color: 'rgba(255,255,255,.6)' } },
+                            y: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,.8)', font: { size: 11 } } }
+                        }
+                    }
+                });
+            }
+
+            // Tendencia real de dinero gestionado (últimos 6 meses)
+            var ctxTendencia = document.getElementById('chartTendencia');
+            if (ctxTendencia) {
+                var tendencia = @Html.Raw(Model.TendenciaJson);
+                new Chart(ctxTendencia, {
+                    type: 'line',
+                    data: {
+                        labels: tendencia.map(function (t) { return t.mes; }),
+                        datasets: [{
+                            label: 'Gestionado',
+                            data: tendencia.map(function (t) { return t.ingresos; }),
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16,185,129,0.2)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#10B981'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,.6)' } },
+                            y: { grid: { color: 'rgba(255,255,255,.08)' }, ticks: { color: 'rgba(255,255,255,.6)' } }
+                        }
+                    }
+                });
+            }
+
+            // Distribución real de calificaciones de satisfacción (1 a 5 estrellas)
+            var ctxSatisfaccion = document.getElementById('chartSatisfaccion');
+            if (ctxSatisfaccion) {
+                var distribucion = @Html.Raw(Model.DistribucionSatisfaccionJson);
+                new Chart(ctxSatisfaccion, {
+                    type: 'bar',
+                    data: {
+                        labels: ['1 ★', '2 ★', '3 ★', '4 ★', '5 ★'],
+                        datasets: [{
+                            label: 'Encuestas',
+                            data: distribucion,
+                            backgroundColor: ['#EF4444', '#F97316', '#F59E0B', '#84CC16', '#10B981'],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,.6)' } },
+                            y: { grid: { color: 'rgba(255,255,255,.08)' }, ticks: { color: 'rgba(255,255,255,.6)', precision: 0 } }
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

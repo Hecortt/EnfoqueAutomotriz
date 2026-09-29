@@ -1,0 +1,195 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.Dashboard.PorSucursalModel
+@using EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Dashboard por Taller";
+}
+
+<div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+    <div>
+        <h2 class="text-xl font-bold text-text-1">Dashboard por Taller</h2>
+        <p class="text-text-3 text-sm">Detalle operativo de una sucursal específica.</p>
+    </div>
+    <form method="get" class="flex items-center gap-2">
+        <select name="sucursalId" onchange="this.form.submit()" class="h-9 px-3 rounded-lg border border-border-ui text-sm">
+            @foreach (var s in Model.Sucursales)
+            {
+                <option value="@s.Id" selected="@(Model.SucursalId == s.Id)">@s.Nombre</option>
+            }
+        </select>
+    </form>
+</div>
+
+<partial name="_Ayuda" model="@(new AyudaModel {
+    PaginaId = "dashboard-por-taller",
+    Titulo = "¿Qué muestra esta pantalla?",
+    QueHace = "Detalle operativo de un solo taller/sucursal: ingresos, margen, técnicos con más órdenes atendidas y refacciones más usadas ahí.",
+    Pasos = new List<PasoAyuda> {
+        new(1, "Selecciona la sucursal que quieres analizar en el selector de la esquina superior derecha."),
+        new(2, "Revisa 'Entregas a tiempo' y 'Tiempo promedio de reparación' para medir la eficiencia de ese taller."),
+        new(3, "La tabla de técnicos te dice quién ha atendido más órdenes en esa sucursal."),
+        new(4, "La tabla de refacciones más usadas ayuda a anticipar compras de inventario para ese taller.")
+    },
+    Conexiones = new List<ConexionAyuda> {
+        new("Dashboard General", "/Index", "layout-dashboard", "Ver el consolidado de todas las sucursales"),
+        new("Desempeño Individual", "/Dashboard/Desempeno", "radar", "Analizar a un técnico específico de este taller")
+    }
+})" />
+
+@if (Model.Data == null)
+{
+    <div class="alert alert-error">Selecciona una sucursal para ver su detalle.</div>
+}
+else
+{
+    var d = Model.Data;
+    <h3 class="text-lg font-semibold text-text-1 mb-3">@d.Sucursal</h3>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="kpi-premium stagger-in">
+            <div class="kpi-premium-icon bg-amber-100"><i data-lucide="wrench" class="w-[18px] h-[18px] text-amber-600"></i></div>
+            <div>
+                <p class="text-2xl font-bold text-text-1" data-count-to="@d.OrdenesActivas">0</p>
+                <p class="text-text-3 text-[11px] font-semibold uppercase tracking-wide">Órdenes activas</p>
+            </div>
+        </div>
+        <div class="kpi-premium stagger-in">
+            <div class="kpi-premium-icon bg-emerald-100"><i data-lucide="banknote" class="w-[18px] h-[18px] text-emerald-600"></i></div>
+            <div>
+                <p class="text-2xl font-bold text-text-1" data-count-to="@d.IngresosMes.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-prefix="$" data-decimals="0">$0</p>
+                <p class="text-text-3 text-[11px] font-semibold uppercase tracking-wide">Ingresos del mes</p>
+            </div>
+        </div>
+        <div class="kpi-premium stagger-in">
+            <div class="kpi-premium-icon bg-violet-100"><i data-lucide="trending-up" class="w-[18px] h-[18px] text-violet-600"></i></div>
+            <div>
+                <p class="text-2xl font-bold text-emerald-600" data-count-to="@d.MargenMes.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-prefix="$" data-decimals="0">$0</p>
+                <p class="text-text-3 text-[11px] font-semibold uppercase tracking-wide">Margen de utilidad</p>
+                <p class="text-xs text-text-3 mt-0.5">@d.MargenPorcentaje% del ingreso</p>
+            </div>
+        </div>
+        <div class="kpi-premium stagger-in">
+            <div class="kpi-premium-icon bg-blue-100"><i data-lucide="users" class="w-[18px] h-[18px] text-blue-600"></i></div>
+            <div>
+                <p class="text-2xl font-bold text-text-1">@d.EmpleadosSucursal <span class="text-sm text-text-3">/ @d.ClientesAtendidos</span></p>
+                <p class="text-text-3 text-[11px] font-semibold uppercase tracking-wide">Empleados / Clientes</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div class="kpi-premium stagger-in">
+            <div class="kpi-premium-icon bg-emerald-100"><i data-lucide="clock" class="w-[18px] h-[18px] text-emerald-600"></i></div>
+            <div>
+                @if (d.EntregasATiempoPorcentaje.HasValue)
+                {
+                    <p class="text-2xl font-bold @(d.EntregasATiempoPorcentaje is >= 85 ? "text-emerald-600" : d.EntregasATiempoPorcentaje is >= 70 ? "text-amber-600" : "text-red-600")"
+                       data-count-to="@d.EntregasATiempoPorcentaje.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-decimals="1" data-suffix="%">0%</p>
+                }
+                else
+                {
+                    <p class="text-2xl font-bold text-text-3">Sin datos</p>
+                }
+                <p class="text-text-3 text-[11px] font-semibold uppercase tracking-wide">Entregas a tiempo</p>
+                <p class="text-xs text-text-3 mt-0.5">% de órdenes entregadas en o antes de la fecha comprometida</p>
+            </div>
+        </div>
+        <div class="kpi-premium stagger-in">
+            <div class="kpi-premium-icon bg-blue-100"><i data-lucide="timer" class="w-[18px] h-[18px] text-blue-600"></i></div>
+            <div>
+                @if (d.TiempoPromedioReparacionHoras.HasValue)
+                {
+                    <p class="text-2xl font-bold text-text-1" data-count-to="@Math.Round(d.TiempoPromedioReparacionHoras.Value / 24, 1).ToString(System.Globalization.CultureInfo.InvariantCulture)" data-decimals="1" data-suffix=" días">0 días</p>
+                }
+                else
+                {
+                    <p class="text-2xl font-bold text-text-3">Sin datos</p>
+                }
+                <p class="text-text-3 text-[11px] font-semibold uppercase tracking-wide">Tiempo promedio de reparación</p>
+                <p class="text-xs text-text-3 mt-0.5">Desde recepción hasta entrega (@(d.TiempoPromedioReparacionHoras.HasValue ? $"{d.TiempoPromedioReparacionHoras.Value} hrs" : "—"))</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <div class="lg:col-span-2 chart-card stagger-in">
+            <h3 class="font-semibold text-text-1 mb-3 flex items-center gap-2"><i data-lucide="line-chart" class="w-4 h-4 text-primary"></i> Tendencia (últimos 6 meses)</h3>
+            <canvas id="chartTendenciaSuc" height="110"></canvas>
+        </div>
+        <div class="chart-card stagger-in">
+            <h3 class="font-semibold text-text-1 mb-3 flex items-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4 text-primary"></i> Órdenes por estatus</h3>
+            <canvas id="chartEstadosSuc" height="220"></canvas>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="card card-body stagger-in">
+            <h3 class="font-semibold text-text-1 mb-3">Técnicos con más órdenes atendidas</h3>
+            <table class="w-full text-sm">
+                <thead class="text-text-3 text-xs uppercase"><tr><th class="text-left py-1.5">Técnico</th><th class="text-right py-1.5">Órdenes</th></tr></thead>
+                <tbody>
+                    @foreach (var t in d.TopTecnicos)
+                    {
+                        <tr class="border-t border-border-ui hover:bg-base/60 transition-colors"><td class="py-1.5">@t.Nombre</td><td class="py-1.5 text-right font-medium">@t.Ordenes</td></tr>
+                    }
+                    @if (!d.TopTecnicos.Any())
+                    {
+                        <tr><td colspan="2" class="text-center py-4 text-text-3">Sin datos.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="card card-body stagger-in">
+            <h3 class="font-semibold text-text-1 mb-3">Refacciones más usadas en este taller</h3>
+            <table class="w-full text-sm">
+                <thead class="text-text-3 text-xs uppercase"><tr><th class="text-left py-1.5">Refacción</th><th class="text-right py-1.5">Veces usada</th></tr></thead>
+                <tbody>
+                    @foreach (var r in d.RefaccionesMasUsadas)
+                    {
+                        <tr class="border-t border-border-ui hover:bg-base/60 transition-colors"><td class="py-1.5">@r.Refaccion</td><td class="py-1.5 text-right font-medium">@r.VecesUsada</td></tr>
+                    }
+                    @if (!d.RefaccionesMasUsadas.Any())
+                    {
+                        <tr><td colspan="2" class="text-center py-4 text-text-3">Sin datos.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="~/js/chart-theme.js" asp-append-version="true"></script>
+    <script>
+        const tendenciaSuc = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(d.Tendencia, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+        const porEstadoSuc = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(d.PorEstado, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+        const T = window.ChartTheme;
+
+        const ctxTendenciaSuc = document.getElementById('chartTendenciaSuc');
+        new Chart(ctxTendenciaSuc, {
+            type: 'line',
+            data: {
+                labels: tendenciaSuc.map(t => t.mes),
+                datasets: [
+                    T.lineDataset('Ingresos', tendenciaSuc.map(t => t.ingresos), T.colors.primary, ctxTendenciaSuc),
+                    T.lineDataset('Margen', tendenciaSuc.map(t => t.margen), T.colors.emerald, ctxTendenciaSuc)
+                ]
+            },
+            options: T.lineOptions()
+        });
+
+        const totalEstadosSuc = porEstadoSuc.reduce((a, e) => a + e.cantidad, 0);
+        new Chart(document.getElementById('chartEstadosSuc'), {
+            type: 'doughnut',
+            data: {
+                labels: porEstadoSuc.map(e => e.estado),
+                datasets: [{
+                    data: porEstadoSuc.map(e => e.cantidad),
+                    backgroundColor: ['#94A3B8', '#F59E0B', '#FB923C', '#3B82F6', '#8B5CF6', '#10B981'],
+                    hoverOffset: 10, borderWidth: 3, borderColor: '#fff'
+                }]
+            },
+            options: T.doughnutOptions({ plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 }, usePointStyle: true, pointStyle: 'circle' } } } }),
+            plugins: [T.centerTextPlugin(totalEstadosSuc, 'Órdenes')]
+        });
+    </script>
+}

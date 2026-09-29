@@ -1,0 +1,83 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.OrdenesServicio.IndexModel
+@using EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Órdenes de Servicio";
+}
+
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-bold text-text-1">Órdenes de Servicio</h2>
+    <a href="/OrdenesServicio/Create" class="btn bg-primary text-white">
+        <i data-lucide="plus" class="w-4 h-4"></i> Nueva orden
+    </a>
+</div>
+
+<partial name="_Ayuda" model="@(new AyudaModel {
+    PaginaId = "ordenes-servicio-index",
+    Titulo = "¿Qué muestra esta pantalla?",
+    QueHace = "Listado de todas las órdenes de servicio del taller: el expediente completo de cada vehículo que entra a reparación, desde su recepción hasta su entrega.",
+    Pasos = new List<PasoAyuda> {
+        new(1, "Haz clic en 'Nueva orden' para registrar la recepción de un vehículo."),
+        new(2, "Haz clic en cualquier fila para abrir el detalle completo: conceptos, fotos, cotización, mecánicos asignados y diagrama de daños."),
+        new(3, "Desde el detalle puedes cambiar el estatus de la orden conforme avanza el proceso.")
+    },
+    Conexiones = new List<ConexionAyuda> {
+        new("Tablero Operativo", "/Dashboard/Operativo", "activity", "Ver todas las órdenes activas agrupadas por etapa"),
+        new("Clientes", "/Clientes/Index", "users", "Ver el historial de un cliente"),
+        new("Solicitudes de Refacciones", "/Almacen/Solicitudes", "clipboard-list", "Ver qué refacciones se pidieron para estas órdenes")
+    }
+})" />
+
+<div class="card">
+    <table class="w-full text-sm">
+        <thead class="bg-base text-text-3 text-xs uppercase">
+            <tr>
+                <th class="text-left px-2.5 py-1.5">Folio</th>
+                <th class="text-left px-2.5 py-1.5">Cliente</th>
+                <th class="text-left px-2.5 py-1.5">Vehículo</th>
+                <th class="text-left px-2.5 py-1.5">Sucursal</th>
+                <th class="text-left px-2.5 py-1.5">Estatus</th>
+                <th class="text-left px-2.5 py-1.5">Total</th>
+                <th class="text-left px-2.5 py-1.5"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Ordenes is { Count: > 0 })
+            {
+                foreach (var o in Model.Ordenes)
+                {
+                    <tr class="border-t border-border-ui hover:bg-base/60 transition-colors">
+                        <td class="px-2.5 py-1.5 font-medium">@o.Folio</td>
+                        <td class="px-2.5 py-1.5">@o.Cliente?.Nombre</td>
+                        <td class="px-2.5 py-1.5">@o.Vehiculo?.Marca @o.Vehiculo?.Modelo (@o.Vehiculo?.Placas)</td>
+                        <td class="px-2.5 py-1.5">@o.Sucursal?.Nombre</td>
+                        <td class="px-2.5 py-1.5">@Html.Raw(EstadoBadge(o.Estado))</td>
+                        <td class="px-2.5 py-1.5">@o.Total.ToString("C2")</td>
+                        <td class="px-2.5 py-1.5"><a href="/OrdenesServicio/Detail/@o.Id" class="text-primary text-xs font-medium">Ver</a></td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="7" class="px-3 py-6 text-center text-text-3">Sin órdenes registradas.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@functions {
+    string EstadoBadge(EnfoqueAutomotriz.Domain.Ordenes.EstadoOrdenServicio estado)
+    {
+        var (bg, label) = estado switch
+        {
+            EnfoqueAutomotriz.Domain.Ordenes.EstadoOrdenServicio.Recibido => ("bg-slate-100 text-slate-700", "Recibido"),
+            EnfoqueAutomotriz.Domain.Ordenes.EstadoOrdenServicio.Diagnostico => ("bg-amber-100 text-amber-700", "Diagnóstico"),
+            EnfoqueAutomotriz.Domain.Ordenes.EstadoOrdenServicio.EsperandoAprobacion => ("bg-orange-100 text-orange-700", "Esperando aprobación"),
+            EnfoqueAutomotriz.Domain.Ordenes.EstadoOrdenServicio.EnReparacion => ("bg-blue-100 text-blue-700", "En reparación"),
+            EnfoqueAutomotriz.Domain.Ordenes.EstadoOrdenServicio.Listo => ("bg-violet-100 text-violet-700", "Listo"),
+            EnfoqueAutomotriz.Domain.Ordenes.EstadoOrdenServicio.Entregado => ("bg-emerald-100 text-emerald-700", "Entregado"),
+            _ => ("bg-red-100 text-red-700", "Cancelado")
+        };
+        return $"<span class='badge {bg}'>{label}</span>";
+    }
+}

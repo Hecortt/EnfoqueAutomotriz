@@ -1,0 +1,118 @@
+@page "{token:guid}"
+@model EnfoqueAutomotriz.UI.Pages.Seguimiento.IndexModel
+@using EnfoqueAutomotriz.Domain.Ordenes
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seguimiento de tu vehículo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="bg-base min-h-screen">
+    <div class="max-w-lg mx-auto p-4 py-8">
+        @if (Model.Data == null)
+        {
+            <div class="alert alert-error">No se encontró la información de seguimiento.</div>
+        }
+        else
+        {
+            var d = Model.Data;
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+                    <i data-lucide="wrench" class="w-7 h-7 text-primary"></i>
+                </div>
+                <h1 class="text-xl font-bold text-text-1">Orden @d.Folio</h1>
+                <p class="text-text-3 text-sm">@d.Vehiculo</p>
+            </div>
+
+            @if (Model.Mensaje != null)
+            {
+                <div class="alert alert-success mb-4">@Model.Mensaje</div>
+            }
+
+            @if (d.EstadoCotizacion == EstadoCotizacion.Pendiente)
+            {
+                <div class="card card-body mb-4 border-2 border-amber-300">
+                    <h3 class="font-semibold text-text-1 mb-2">Cotización pendiente de tu aprobación</h3>
+                    <p class="text-sm text-text-2 mb-3">Total estimado: <span class="font-bold">@d.Total.ToString("C2")</span></p>
+                    <div class="flex gap-2">
+                        <form method="post" asp-page-handler="Aprobar" class="flex-1">
+                            <button type="submit" class="btn bg-emerald-600 text-white w-full">✓ Aprobar</button>
+                        </form>
+                        <form method="post" asp-page-handler="Rechazar" class="flex-1">
+                            <button type="submit" class="btn bg-white border border-red-300 text-red-600 w-full">✗ Rechazar</button>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            <div class="card card-body mb-4">
+                <h3 class="font-semibold text-text-1 mb-3">Avance de tu vehículo</h3>
+                <div class="space-y-3">
+                    @foreach (var t in d.Timeline)
+                    {
+                        <div class="border-l-2 border-primary pl-3">
+                            <p class="text-xs font-semibold text-text-1">@t.Estado</p>
+                            <p class="text-[11px] text-text-3">@t.Fecha.ToString("dd/MM/yyyy HH:mm")</p>
+                            @if (!string.IsNullOrEmpty(t.Comentario))
+                            {
+                                <p class="text-xs text-text-2">@t.Comentario</p>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @if (d.Fotos.Any())
+            {
+                <div class="card card-body mb-4">
+                    <h3 class="font-semibold text-text-1 mb-3">Fotos</h3>
+                    <div class="grid grid-cols-3 gap-2">
+                        @foreach (var f in d.Fotos)
+                        {
+                            <img src="@f.Url" class="rounded-lg w-full h-24 object-cover" />
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (d.Estado == EstadoOrdenServicio.Entregado)
+            {
+                <div class="card card-body">
+                    <h3 class="font-semibold text-text-1 mb-2">¿Cómo fue tu experiencia?</h3>
+                    <form method="post" asp-page-handler="Encuesta" class="space-y-2">
+                        <div class="flex gap-1 justify-center text-2xl" id="stars">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <span data-star="@i" class="cursor-pointer star">★</span>
+                            }
+                        </div>
+                        <input type="hidden" name="Calificacion" id="calificacionInput" value="5" />
+                        <textarea name="Comentario" rows="2" placeholder="Cuéntanos más (opcional)" class="w-full px-3 py-2 rounded-lg border border-border-ui text-sm"></textarea>
+                        <button type="submit" class="btn bg-primary text-white w-full">Enviar</button>
+                    </form>
+                </div>
+            }
+        }
+    </div>
+
+    <script>
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        document.querySelectorAll('.star').forEach(function (star) {
+            star.addEventListener('click', function () {
+                document.getElementById('calificacionInput').value = this.dataset.star;
+                document.querySelectorAll('.star').forEach(function (s) {
+                    s.style.opacity = s.dataset.star <= star.dataset.star ? '1' : '0.3';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

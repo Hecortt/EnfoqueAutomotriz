@@ -1,0 +1,97 @@
+@*
+    Componente de Ayuda Contextual — _Ayuda.cshtml
+    Se renderiza como un panel lateral (drawer) que se abre con el botón ? del header.
+*@
+@model EnfoqueAutomotriz.UI.Pages.Shared.AyudaModel
+
+@{
+    var panelId = $"ayuda-{Model.PaginaId}";
+}
+
+<div id="ayuda-drawer-backdrop" class="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 hidden transition-opacity" onclick="cerrarAyuda()"></div>
+
+<div id="ayuda-drawer" class="fixed top-0 right-0 h-full w-full sm:w-96 bg-surface shadow-2xl z-50 translate-x-full transition-transform duration-300 ease-out flex flex-col">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-border-ui bg-primary/5">
+        <div class="flex items-center gap-2.5">
+            <div class="bg-primary/10 p-2 rounded-lg">
+                <i data-lucide="circle-help" class="w-4 h-4 text-primary"></i>
+            </div>
+            <h2 class="text-sm font-bold text-text-1">Ayuda</h2>
+        </div>
+        <button onclick="cerrarAyuda()" class="btn-icon-sm text-text-3 hover:text-text-1">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5 space-y-5">
+        <div>
+            <h3 class="text-xs font-bold text-primary uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                <i data-lucide="info" class="w-3.5 h-3.5"></i>@Model.Titulo
+            </h3>
+            <p class="text-sm text-text-2 leading-relaxed">@Model.QueHace</p>
+        </div>
+
+        @if (Model.Pasos.Any())
+        {
+            <div>
+                <h3 class="text-xs font-bold text-primary uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <i data-lucide="list-ordered" class="w-3.5 h-3.5"></i>Cómo usarla
+                </h3>
+                <ol class="space-y-2">
+                    @foreach (var paso in Model.Pasos)
+                    {
+                        <li class="flex gap-2.5 text-sm text-text-2">
+                            <span class="w-5 h-5 rounded-full bg-primary text-white text-[10px] flex items-center justify-center shrink-0 mt-0.5 font-bold">@paso.Numero</span>
+                            <span>@paso.Descripcion</span>
+                        </li>
+                    }
+                </ol>
+            </div>
+        }
+
+        @if (Model.Conexiones.Any())
+        {
+            <div>
+                <h3 class="text-xs font-bold text-primary uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i>Se conecta con
+                </h3>
+                <div class="space-y-1.5">
+                    @foreach (var con in Model.Conexiones)
+                    {
+                        <a href="@con.Url" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-base transition-colors group">
+                            <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20">
+                                <i data-lucide="@con.Icono" class="w-3.5 h-3.5 text-primary"></i>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-text-1 group-hover:text-primary">@con.Nombre</span>
+                                <p class="text-xs text-text-3">@con.Motivo</p>
+                            </div>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (Model.Alertas.Any())
+        {
+            <div class="border-t border-border-ui pt-4">
+                <h3 class="text-xs font-bold text-amber-600 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <i data-lucide="triangle-alert" class="w-3.5 h-3.5"></i>Importante
+                </h3>
+                <div class="space-y-2">
+                    @foreach (var alerta in Model.Alertas)
+                    {
+                        <div class="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 rounded-lg p-2.5">
+                            <i data-lucide="triangle-alert" class="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0"></i>
+                            <span>@alerta</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+window.__ayudaPresent = true;
+</script>

@@ -1,0 +1,1121 @@
+@import "tailwindcss";
+
+@source "../../Pages/**/*.cshtml";
+@source "../js/**/*.js";
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --color-primary: #4F46E5;
+  --color-primary-hover: #4338CA;
+  --color-sidebar: #1E293B;
+  --color-sidebar-hover: #334155;
+  --color-base: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-border-ui: #E2E8F0;
+  --color-text-1: #0F172A;
+  --color-text-2: #475569;
+  --color-text-3: #94A3B8;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #3B82F6;
+
+  --animate-fade-in-up: fade-in-up 0.4s ease-out both;
+  --animate-fade-in: fade-in 0.3s ease-out both;
+  --animate-slide-in-right: slide-in-right 0.35s ease-out both;
+  --animate-slide-in-left: slide-in-left 0.35s ease-out both;
+  --animate-slide-in-down: slide-in-down 0.3s ease-out both;
+  --animate-scale-in: scale-in 0.3s ease-out both;
+  --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-progress-fill: progress-fill 0.8s ease-out both;
+  --animate-count-pulse: count-pulse 0.4s ease-out;
+  --animate-modal-in: modal-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fade-in-up {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes slide-in-right {
+  0%   { opacity: 0; transform: translateX(20px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-in-left {
+  0%   { opacity: 0; transform: translateX(-20px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-in-down {
+  0%   { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes scale-in {
+  0%   { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.7; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes progress-fill {
+  0%   { width: 0%; }
+  100% { width: var(--progress-width, 100%); }
+}
+@keyframes count-pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   obra360 Design System — input.css
+   Responsive-first: mobile → tablet (md:768) → desktop (lg:1024)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Utilidades base encadenables (Tailwind v4 requiere @utility para que una
+   clase custom pueda usarse dentro de @apply de otra clase custom) ────────── */
+@utility btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-150
+         inline-flex items-center justify-center gap-2 text-sm
+         active:scale-[0.97] select-none whitespace-nowrap;
+}
+@utility card {
+  @apply bg-surface rounded-xl border border-border-ui shadow-sm
+         transition-shadow duration-200;
+}
+@utility card-body {
+  @apply p-3 md:p-4;
+}
+@utility badge {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap;
+}
+@utility alert {
+  @apply flex items-start gap-2.5 px-4 py-3 rounded-lg text-sm mb-4
+         animate-slide-in-down;
+}
+
+@layer base {
+  html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply text-sm text-text-1;
+  }
+  /* Scrollbar sutil */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-gray-300 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-gray-400; }
+}
+
+@layer components {
+
+  /* ── Botones ──────────────────────────────────────────────────────────── */
+  .btn-primary {
+    @apply btn bg-primary text-white hover:bg-primary-hover shadow-sm hover:shadow;
+  }
+  .btn-secondary {
+    @apply btn bg-white text-text-1 border border-border-ui hover:bg-base hover:border-gray-300;
+  }
+  .btn-danger {
+    @apply btn bg-danger text-white hover:bg-red-600;
+  }
+  .btn-success {
+    @apply btn bg-success text-white hover:bg-emerald-600;
+  }
+  .btn-warning {
+    @apply btn bg-warning text-white hover:bg-amber-600;
+  }
+  .btn-ghost {
+    @apply btn bg-transparent text-text-2 hover:bg-base hover:text-text-1;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+  .btn-xs {
+    @apply px-2 py-1 text-xs gap-1;
+  }
+  .btn-icon {
+    @apply p-2 rounded-lg hover:bg-base transition-colors active:scale-95;
+  }
+  .btn-icon-sm {
+    @apply p-1.5 rounded-md hover:bg-base transition-colors active:scale-95;
+  }
+
+  /* ── Formularios ─────────────────────────────────────────────────────── */
+  .input {
+    @apply w-full px-3 py-2 text-sm border border-border-ui rounded-lg bg-white
+           focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary 
+           transition-all placeholder:text-text-3;
+  }
+  .input-error {
+    @apply border-danger focus:ring-danger/30 focus:border-danger;
+  }
+  .label {
+    @apply block text-xs font-semibold text-text-2 uppercase tracking-wide mb-1.5;
+  }
+  .form-hint {
+    @apply text-xs text-text-3 mt-1;
+  }
+  .form-group {
+    @apply space-y-1;
+  }
+
+  /* ── Cards ───────────────────────────────────────────────────────────── */
+  .card-header {
+    @apply px-3 py-2.5 md:px-4 md:py-3 border-b border-border-ui;
+  }
+  .card-footer {
+    @apply px-3 py-2.5 md:px-4 md:py-3 border-t border-border-ui bg-base/50;
+  }
+
+  /* ── Tablas ──────────────────────────────────────────────────────────── */
+  .table-container {
+    @apply overflow-x-auto relative;
+  }
+  .table-container::after {
+    content: '';
+    @apply absolute top-0 right-0 bottom-0 w-8 pointer-events-none opacity-0 transition-opacity duration-200;
+    background: linear-gradient(to right, transparent, var(--color-surface));
+  }
+  .table-container.has-scroll::after {
+    @apply opacity-100;
+  }
+  .card-body > .table-container {
+    @apply -mx-4 md:-mx-5;
+  }
+  .table {
+    @apply w-full text-sm;
+  }
+  .table th {
+    @apply px-3 py-2 text-left text-[11px] font-semibold text-text-3 uppercase tracking-wider 
+           bg-base/80 border-b border-border-ui whitespace-nowrap;
+  }
+  .table td {
+    @apply px-3 py-1.5 border-b border-border-ui text-[13px];
+  }
+  .table tbody tr {
+    @apply transition-colors duration-150;
+    animation: fade-in 0.3s ease both;
+  }
+  .table tbody tr:hover td {
+    @apply bg-primary/[0.03];
+  }
+  .table tbody tr:nth-child(1)  { animation-delay: 0ms; }
+  .table tbody tr:nth-child(2)  { animation-delay: 30ms; }
+  .table tbody tr:nth-child(3)  { animation-delay: 60ms; }
+  .table tbody tr:nth-child(4)  { animation-delay: 90ms; }
+  .table tbody tr:nth-child(5)  { animation-delay: 120ms; }
+  .table tbody tr:nth-child(6)  { animation-delay: 150ms; }
+  .table tbody tr:nth-child(7)  { animation-delay: 180ms; }
+  .table tbody tr:nth-child(8)  { animation-delay: 210ms; }
+  .table tbody tr:nth-child(9)  { animation-delay: 240ms; }
+  .table tbody tr:nth-child(10) { animation-delay: 270ms; }
+  .table-sm th, .table-sm td {
+    @apply px-3 py-2;
+  }
+
+  /* ── Tabla responsive → cards en móvil/tablet (<1024px) ────────────── */
+  @media (max-width: 1023px) {
+    .table-cards thead {
+      display: none;
+    }
+    .table-cards tbody {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0.75rem;
+    }
+    .table-cards tbody tr {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem 1rem;
+      background: white;
+      border: 1px solid var(--color-border-ui);
+      border-radius: 0.75rem;
+      padding: 0.75rem;
+      align-items: center;
+    }
+    .table-cards tbody tr:hover td {
+      background: transparent;
+    }
+    .table-cards tbody tr td {
+      border: none;
+      padding: 0.125rem 0;
+      font-size: 0.8125rem;
+    }
+    .table-cards tbody tr td::before {
+      content: attr(data-label);
+      display: block;
+      font-size: 0.625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-3);
+      margin-bottom: 0.125rem;
+    }
+    .table-cards tbody tr td:empty::before {
+      display: none;
+    }
+    .table-cards tbody tr td[data-label=""]::before {
+      display: none;
+    }
+    .table-cards tbody tr[data-accordion-detail] {
+      display: none !important;
+    }
+    .table-cards tbody tr[data-accordion-detail]:not(.hidden) {
+      display: flex !important;
+      border-top: none;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      margin-top: -0.5rem;
+      padding-top: 0.5rem;
+      background: var(--color-base);
+    }
+    .table-cards .td-name {
+      width: 100%;
+      order: -2;
+    }
+    .table-cards .td-actions {
+      order: -1;
+      margin-left: auto;
+      position: absolute;
+      right: 0.75rem;
+      top: 0.75rem;
+    }
+    .table-cards tbody tr {
+      position: relative;
+    }
+    .table-cards .td-actions [data-accordion-btn] {
+      display: none;
+    }
+  }
+
+  /* ── Badges ──────────────────────────────────────────────────────────── */
+  .badge-success { @apply badge bg-emerald-50 text-emerald-700; }
+  .badge-warning { @apply badge bg-amber-50 text-amber-700; }
+  .badge-danger  { @apply badge bg-red-50 text-red-700; }
+  .badge-info    { @apply badge bg-blue-50 text-blue-700; }
+  .badge-gray    { @apply badge bg-gray-100 text-gray-600; }
+  .badge-count   { @apply badge bg-gray-100 text-gray-600 text-xs px-1.5 py-0.5; }
+  .badge-primary { @apply badge bg-primary/10 text-primary; }
+
+  /* ── Sidebar ─────────────────────────────────────────────────────────── */
+  .sidebar-link {
+    @apply flex items-center gap-3 px-3 py-1.5 rounded-lg text-gray-400 
+           hover:bg-sidebar-hover hover:text-white transition-all duration-200 text-[13px]
+           hover:translate-x-0.5;
+  }
+  .sidebar-link.active {
+    @apply bg-primary text-white shadow-sm shadow-primary/30;
+  }
+  .sidebar-section {
+    @apply pt-4 pb-1;
+  }
+  .sidebar-section-label {
+    @apply px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest;
+  }
+  .sidebar-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-sidebar-hover) transparent;
+  }
+  .sidebar-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb {
+    background-color: var(--color-sidebar-hover);
+    border-radius: 9999px;
+  }
+  .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: #475569;
+  }
+
+  /* ── Sidebar Collapsed ─────────────────────────────────────────────── */
+  .sidebar-collapsed {
+    @apply !w-16;
+  }
+  .sidebar-collapsed .sidebar-text,
+  .sidebar-collapsed .sidebar-section-label,
+  .sidebar-collapsed .badge-count {
+    @apply hidden;
+  }
+  .sidebar-collapsed .sidebar-link {
+    @apply justify-center px-0 gap-0;
+  }
+  .sidebar-collapsed .sidebar-section {
+    @apply pt-3 pb-0;
+  }
+  .sidebar-collapsed .sidebar-user-info {
+    @apply hidden;
+  }
+  .sidebar-collapsed .sidebar-logo-text {
+    @apply hidden;
+  }
+  .sidebar-collapsed .sidebar-logo-area {
+    @apply justify-center;
+  }
+  .sidebar-collapsed .sidebar-collapse-icon {
+    @apply rotate-180;
+  }
+  .main-collapsed {
+    @apply !ml-16;
+  }
+
+  /* ── Page Layout ─────────────────────────────────────────────────────── */
+  .page-header {
+    @apply flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-5
+           animate-fade-in-up;
+  }
+  .page-header > div:first-child,
+  .page-header > h1:first-child {
+    @apply min-w-0 flex-1 flex flex-col;
+  }
+  .page-title {
+    @apply text-lg sm:text-xl md:text-2xl font-bold text-text-1 leading-tight;
+  }
+  .page-subtitle {
+    @apply text-xs sm:text-sm text-text-2 mt-0.5;
+  }
+  /* Contenedor de botones en page-header */
+  .page-header > a,
+  .page-header > div:last-child,
+  .page-header > form:last-child {
+    @apply shrink-0 flex flex-wrap gap-1.5 sm:gap-2;
+  }
+  /* En móvil (<480px): botones más compactos con texto abreviado */
+  @media (max-width: 479px) {
+    .page-header .btn-primary,
+    .page-header .btn-secondary {
+      @apply px-2.5 py-1.5 text-xs;
+    }
+    .page-header .btn-label-long {
+      @apply hidden;
+    }
+    .page-header .btn-label-short {
+      @apply inline;
+    }
+  }
+  @media (min-width: 480px) {
+    .page-header .btn-label-long {
+      @apply inline;
+    }
+    .page-header .btn-label-short {
+      @apply hidden;
+    }
+  }
+
+  /* ── Avatars ─────────────────────────────────────────────────────────── */
+  .avatar {
+    @apply w-9 h-9 rounded-full object-cover bg-gray-200 flex items-center justify-center 
+           text-sm font-semibold text-white shrink-0;
+  }
+  .avatar-lg {
+    @apply w-20 h-20 rounded-full object-cover bg-gray-200;
+  }
+  .avatar-sm {
+    @apply w-7 h-7 rounded-full object-cover bg-gray-200 text-xs;
+  }
+
+  /* ── Modales ─────────────────────────────────────────────────────────── */
+  .modal-backdrop {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4
+           animate-fade-in;
+  }
+  .modal-panel {
+    @apply card w-full max-h-[90vh] overflow-y-auto animate-modal-in;
+  }
+  .modal-sm  { @apply max-w-md; }
+  .modal-md  { @apply max-w-lg; }
+  .modal-lg  { @apply max-w-2xl; }
+  .modal-xl  { @apply max-w-4xl; }
+  .modal-header {
+    @apply flex items-center gap-3 justify-between px-4 py-3 md:px-5 md:py-3.5 border-b border-border-ui;
+  }
+  .modal-body {
+    @apply p-4 md:p-5;
+  }
+  .modal-footer {
+    @apply flex items-center justify-end gap-2 px-4 py-3 md:px-5 md:py-3.5 border-t border-border-ui bg-base/50;
+  }
+
+  /* ── Modal "elegante": ícono con degradado + subtítulo en el header ──── */
+  .modal-icon {
+    @apply w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 text-white shadow-sm;
+  }
+  .modal-icon svg { @apply w-5 h-5; }
+  .modal-icon-primary { background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover)); }
+  .modal-icon-success { background: linear-gradient(135deg, var(--color-success), #059669); }
+  .modal-icon-warning { background: linear-gradient(135deg, var(--color-warning), #D97706); }
+  .modal-icon-danger  { background: linear-gradient(135deg, var(--color-danger), #DC2626); }
+  .modal-icon-info    { background: linear-gradient(135deg, var(--color-info), #2563EB); }
+  .modal-title-group  { @apply flex-1 min-w-0; }
+  .modal-title-group .modal-title { @apply font-semibold text-text-1 truncate; }
+  .modal-subtitle     { @apply text-xs text-text-3 mt-0.5 truncate; }
+
+  /* ── Alertas ─────────────────────────────────────────────────────────── */
+  .alert-success { @apply alert bg-emerald-50 border border-emerald-200 text-emerald-700; }
+  .alert-error   { @apply alert bg-red-50 border border-red-200 text-red-700; }
+  .alert-warning { @apply alert bg-amber-50 border border-amber-200 text-amber-700; }
+  .alert-info    { @apply alert bg-blue-50 border border-blue-200 text-blue-700; }
+
+  /* ── KPI Cards ───────────────────────────────────────────────────────── */
+  .kpi-card {
+    @apply card card-body text-center py-4
+           hover:shadow-md hover:-translate-y-0.5 transition-all duration-200;
+  }
+  .kpi-label {
+    @apply text-[10px] font-bold text-text-3 uppercase tracking-widest mb-1;
+  }
+  .kpi-value {
+    @apply text-lg md:text-xl font-bold font-mono text-text-1;
+  }
+
+  /* ── Chart card: igual que .card, con hover ligeramente más marcado para
+     las tarjetas que contienen una gráfica (jerarquía visual). ──────────── */
+  .chart-card {
+    @apply card card-body relative
+           hover:shadow-md transition-shadow duration-300;
+  }
+
+  /* ── KPI premium: lenguaje sobrio (blanco + borde fino + icono en caja pastel).
+     Sin barras de color ni gradientes — la elegancia viene del espaciado, la
+     tipografía y una elevación sutil al hover, no de adornos de color. ───── */
+  .kpi-premium {
+    @apply card card-body flex items-center gap-3
+           hover:-translate-y-0.5 hover:shadow-md transition-all duration-200;
+  }
+  .kpi-premium:hover {
+    border-color: #bfdbfe;
+  }
+  .kpi-premium-icon {
+    @apply w-10 h-10 rounded-lg flex items-center justify-center shrink-0;
+  }
+  .kpi-trend-up {
+    @apply inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600;
+  }
+  .kpi-trend-down {
+    @apply inline-flex items-center gap-0.5 text-[10px] font-semibold text-red-600;
+  }
+
+  /* ── Dashboard Cards (portal-style) ────────────────────────────────── */
+  .dash-card {
+    @apply bg-surface rounded-xl border border-border-ui shadow-sm p-4
+           hover:shadow-md transition-shadow duration-200;
+  }
+  .dash-hero {
+    background: linear-gradient(135deg, #312e81 0%, #4F46E5 50%, #6366f1 100%);
+  }
+  .dash-hero-stat {
+    @apply flex flex-col items-center px-4 py-2 rounded-xl;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+  }
+  .dash-kpi {
+    @apply bg-surface rounded-xl border border-border-ui shadow-sm p-3
+           hover:shadow-md transition-shadow duration-200 flex items-start gap-2.5;
+  }
+  .dash-kpi-icon {
+    @apply p-1.5 rounded-lg shrink-0 transition-colors;
+  }
+  .dash-kpi-label {
+    @apply text-[10px] font-bold text-text-3 uppercase tracking-widest leading-tight;
+  }
+  .dash-kpi-value {
+    @apply text-lg font-bold text-text-1 leading-tight mt-0.5;
+  }
+  .dash-kpi-sub {
+    @apply text-[10px] text-text-3 leading-tight mt-0.5;
+  }
+
+  /* ── Empty States ────────────────────────────────────────────────────── */
+  .empty-state {
+    @apply text-center py-10 md:py-14;
+  }
+  .empty-state-icon {
+    @apply w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4;
+  }
+  .empty-state-title {
+    @apply font-semibold text-text-1 mb-1;
+  }
+  .empty-state-text {
+    @apply text-sm text-text-3 mb-4;
+  }
+
+  /* ── Tabs ─────────────────────────────────────────────────────────────── */
+  .tab-bar {
+    @apply flex gap-0.5 bg-base p-1 rounded-xl border border-border-ui overflow-x-auto;
+  }
+  .tab-btn {
+    @apply px-3 py-1.5 rounded-lg text-xs md:text-sm font-medium transition-colors 
+           whitespace-nowrap text-text-3 hover:text-text-2 
+           inline-flex items-center gap-1.5 select-none;
+  }
+  .tab-btn.active,
+  .tab-btn[aria-selected="true"] {
+    @apply bg-white shadow-sm text-primary font-semibold
+           animate-scale-in;
+  }
+
+  /* ── Stat Pill (inline KPI) ──────────────────────────────────────────── */
+  .stat-pill {
+    @apply inline-flex items-center gap-1.5 text-xs md:text-sm;
+  }
+  .stat-pill-icon {
+    @apply w-4 h-4;
+  }
+  .stat-pill-value {
+    @apply font-semibold text-text-1;
+  }
+  .stat-pill-label {
+    @apply text-text-3;
+  }
+
+  /* ── Breadcrumb ──────────────────────────────────────────────────────── */
+  .breadcrumb {
+    @apply flex items-center gap-1.5 text-xs text-text-3 mb-2 flex-wrap;
+  }
+  .breadcrumb a {
+    @apply text-text-2 hover:text-primary transition-colors;
+  }
+  .breadcrumb-sep {
+    @apply text-text-3;
+  }
+
+  /* ── Progress Bar ────────────────────────────────────────────────────── */
+  .progress-bar {
+    @apply w-full bg-base rounded-full h-2 overflow-hidden;
+  }
+  .progress-fill {
+    @apply bg-primary h-full rounded-full transition-all duration-500;
+  }
+
+  /* ── Project Detail Tabs (compact) ───────────────────────────────────── */
+  .proj-tab {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+           whitespace-nowrap text-text-3 hover:text-text-1 hover:bg-base
+           transition-colors select-none shrink-0;
+  }
+  .proj-tab.active {
+    @apply bg-white shadow-sm text-primary font-semibold;
+  }
+  .proj-tab-label {
+    @apply hidden sm:inline;
+  }
+  .proj-tab-badge {
+    @apply text-[10px] font-semibold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full leading-none;
+  }
+  .proj-dropdown-item {
+    @apply flex items-center gap-2 w-full px-3 py-2 text-sm text-text-2
+           hover:bg-base hover:text-primary transition-colors text-left;
+  }
+  .proj-dropdown-item.active {
+    @apply text-primary font-semibold bg-primary/5;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ── HTMX Progress Bar ──────────────────────────────────────────────── */
+  .htmx-progress {
+    @apply fixed top-0 left-0 h-0.5 bg-primary z-[9999] transition-all duration-300;
+    width: 0%;
+  }
+  .htmx-progress.active {
+    animation: htmx-progress 2s ease-in-out forwards;
+  }
+  .htmx-progress.done {
+    width: 100%;
+    opacity: 0;
+    transition: width 0.2s, opacity 0.3s 0.2s;
+  }
+
+  /* ── Page loader: overlay con blur + marca obra360 animada, mientras
+     carga la página/acción. La barra superior (#htmx-progress) da el
+     feedback instantáneo; este overlay solo aparece si la espera se alarga
+     un poco (ver page-loader.js), con un diseño minimalista de una sola
+     marca "respirando" en vez de engranes girando. ──────────────────── */
+  .page-loader-overlay {
+    @apply fixed inset-0 z-[9998] flex items-center justify-center
+           bg-white/50 backdrop-blur-[2px]
+           opacity-0 pointer-events-none transition-opacity duration-200;
+  }
+  .page-loader-overlay.active {
+    @apply opacity-100 pointer-events-auto;
+  }
+  .page-loader-box {
+    @apply flex flex-col items-center gap-3 bg-surface border border-border-ui
+           rounded-2xl shadow-lg px-8 py-7 animate-scale-in;
+  }
+
+  /* Marca central: ícono con "anillos" pulsando hacia afuera (como un radar/
+     sonar sutil) en vez de spinners girando — más elegante y menos "ruidoso". */
+  .page-loader-logo {
+    @apply relative w-11 h-11 flex items-center justify-center;
+  }
+  .page-loader-logo-ring {
+    @apply absolute inset-0 rounded-xl bg-primary;
+    animation: logo-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  .page-loader-logo-ring-delay {
+    animation-delay: 0.6s;
+  }
+  .page-loader-logo-icon {
+    @apply relative z-10 flex items-center justify-center w-11 h-11 rounded-xl bg-primary text-white shadow-sm;
+  }
+  .page-loader-logo-icon i {
+    @apply w-5 h-5;
+  }
+
+  /* Texto "obra360" con barrido de brillo en degradado (efecto shimmer) */
+  .page-loader-brand {
+    @apply text-base font-extrabold tracking-tight flex items-baseline gap-1.5;
+    background-image: linear-gradient(
+      100deg,
+      var(--color-text-1) 40%,
+      var(--color-primary) 50%,
+      var(--color-text-1) 60%
+    );
+    background-size: 250% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: brand-shimmer 2.2s ease-in-out infinite;
+  }
+  .page-loader-brand-sub {
+    @apply text-[10px] font-semibold text-primary/70 tracking-tight;
+  }
+  .page-loader-subtext {
+    @apply text-[11px] text-text-3;
+  }
+
+  /* ── List rows (clickable) ───────────────────────────────────────────── */
+  .list-row {
+    @apply flex items-center gap-3 px-4 py-3 border-b border-border-ui last:border-0 
+           hover:bg-primary/[0.03] transition-colors cursor-pointer;
+  }
+}
+
+@layer utilities {
+  /* .animate-modal-in ahora se genera automáticamente desde --animate-modal-in en @theme */
+
+  /* ── Stagger delays for child elements ─────────────────────────────── */
+  .stagger-children > *:nth-child(1)  { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2)  { animation-delay: 50ms; }
+  .stagger-children > *:nth-child(3)  { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(4)  { animation-delay: 150ms; }
+  .stagger-children > *:nth-child(5)  { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(6)  { animation-delay: 250ms; }
+  .stagger-children > *:nth-child(7)  { animation-delay: 300ms; }
+  .stagger-children > *:nth-child(8)  { animation-delay: 350ms; }
+  .stagger-children > *:nth-child(9)  { animation-delay: 400ms; }
+  .stagger-children > *:nth-child(10) { animation-delay: 450ms; }
+  .stagger-children > *:nth-child(11) { animation-delay: 500ms; }
+  .stagger-children > *:nth-child(12) { animation-delay: 550ms; }
+  .stagger-children > * {
+    @apply animate-fade-in-up;
+  }
+
+  /* ── Hover lift for interactive cards ───────────────────────────────── */
+  .hover-lift {
+    @apply transition-all duration-200;
+  }
+  .hover-lift:hover {
+    @apply -translate-y-0.5 shadow-md;
+  }
+
+  /* ── Truncar a N líneas ────────────────────────────────────────────── */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── Touch-friendly spacing ────────────────────────────────────────── */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+
+  /* ── HTMX progress bar keyframe ──────────────────────────────────── */
+  @keyframes htmx-progress {
+    0%   { width: 0%; }
+    20%  { width: 30%; }
+    50%  { width: 60%; }
+    80%  { width: 85%; }
+    100% { width: 92%; }
+  }
+
+  @keyframes logo-pulse {
+    0%   { transform: scale(0.85); opacity: 0.5; }
+    100% { transform: scale(1.7); opacity: 0; }
+  }
+  @keyframes brand-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── Reduce motion preference ──────────────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Header — dropdown de usuario y centro de notificaciones
+   ═══════════════════════════════════════════════════════════════════════════ */
+.header-bar {
+  @apply h-14 bg-surface/95 backdrop-blur border-b border-border-ui
+         flex items-center justify-between px-3 sm:px-4 lg:px-6
+         sticky top-0 z-30 gap-2;
+}
+.header-icon-btn {
+  @apply p-1.5 sm:p-2 rounded-lg text-text-3 hover:text-text-2 hover:bg-base transition-colors
+         inline-flex items-center justify-center relative;
+}
+.header-notification-dot {
+  @apply absolute top-1 right-1 w-2 h-2 rounded-full bg-danger;
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+.header-user-btn {
+  @apply flex items-center gap-2 p-1 pr-2 rounded-lg hover:bg-base transition-colors;
+}
+.header-dropdown {
+  @apply absolute right-0 top-[calc(100%+0.5rem)] w-56 bg-surface rounded-xl border border-border-ui
+         shadow-lg z-50 p-1.5 animate-scale-in origin-top-right;
+}
+.header-dropdown-wide {
+  @apply w-80 max-w-[90vw] p-0 overflow-hidden;
+}
+.header-dropdown-user {
+  @apply px-3 py-2;
+}
+.header-dropdown-header {
+  @apply flex items-center justify-between px-3.5 py-2.5 border-b border-border-ui bg-base/60
+         text-xs font-semibold text-text-1;
+}
+.header-dropdown-link {
+  @apply text-[11px] font-medium text-primary hover:underline;
+}
+.header-dropdown-item {
+  @apply flex items-center gap-2 w-full px-3 py-2 text-sm text-text-2 rounded-lg
+         hover:bg-base hover:text-text-1 transition-colors;
+}
+.header-dropdown-item-danger {
+  @apply text-danger hover:bg-danger/5 hover:text-danger;
+}
+.header-dropdown-divider {
+  @apply my-1 border-border-ui;
+}
+.header-notification-list {
+  @apply max-h-80 overflow-y-auto;
+}
+.header-notification-item {
+  @apply flex items-start gap-2.5 px-3.5 py-2.5 border-b border-border-ui last:border-0
+         hover:bg-base transition-colors cursor-pointer w-full text-left;
+}
+.header-notification-item.is-unread {
+  @apply bg-primary/5;
+}
+.header-notification-title {
+  @apply text-xs font-semibold text-text-1;
+}
+.header-notification-body {
+  @apply text-xs text-text-2 mt-0.5 leading-snug;
+}
+.header-notification-time {
+  @apply text-[10px] text-text-3 mt-1;
+}
+.header-notification-empty {
+  @apply px-3.5 py-6 text-center text-xs text-text-3;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Stat Card — KPI compacto reutilizable para listados (Compras, Finiquitos, etc.)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.stat-card {
+  @apply card card-body flex items-center gap-2.5 py-2.5 px-3
+         hover:shadow-md hover:-translate-y-0.5 transition-all duration-200;
+}
+.stat-card-icon {
+  @apply w-9 h-9 rounded-lg flex items-center justify-center shrink-0;
+}
+.stat-card-label {
+  @apply text-[10px] font-bold text-text-3 uppercase tracking-widest leading-none;
+}
+.stat-card-value {
+  @apply text-lg font-bold text-text-1 leading-tight mt-0.5 font-mono;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Flatpickr — obra360 theme overrides
+   ═══════════════════════════════════════════════════════════════════════════ */
+.flatpickr-calendar {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  border-radius: 0.75rem;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,.1), 0 4px 10px -5px rgba(0,0,0,.06);
+  overflow: hidden;
+}
+.flatpickr-calendar.arrowTop::before,
+.flatpickr-calendar.arrowTop::after,
+.flatpickr-calendar.arrowBottom::before,
+.flatpickr-calendar.arrowBottom::after {
+  display: none;
+}
+.flatpickr-months {
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  padding: 4px 0;
+}
+.flatpickr-months .flatpickr-month {
+  height: 36px;
+}
+.flatpickr-current-month {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0F172A;
+  padding-top: 6px;
+}
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month input.cur-year {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #0F172A;
+}
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+  color: #475569;
+  fill: #475569;
+  padding: 6px 10px;
+  border-radius: 0.5rem;
+  transition: all 0.15s;
+}
+.flatpickr-months .flatpickr-prev-month:hover,
+.flatpickr-months .flatpickr-next-month:hover {
+  color: #4F46E5;
+  fill: #4F46E5;
+  background: rgba(79, 70, 229, 0.08);
+}
+.flatpickr-weekdays {
+  background: transparent;
+  padding: 4px 0 0;
+}
+span.flatpickr-weekday {
+  color: #94A3B8;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.flatpickr-day {
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #0F172A;
+  line-height: 36px;
+  height: 36px;
+  max-width: 36px;
+  margin: 1px;
+  transition: all 0.1s;
+}
+.flatpickr-day:hover {
+  background: rgba(79, 70, 229, 0.08);
+  border-color: transparent;
+  color: #4F46E5;
+}
+.flatpickr-day.today {
+  border-color: #4F46E5;
+  color: #4F46E5;
+  font-weight: 700;
+}
+.flatpickr-day.today:hover {
+  background: rgba(79, 70, 229, 0.08);
+  color: #4F46E5;
+}
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover,
+.flatpickr-day.selected:focus {
+  background: #4F46E5;
+  border-color: #4F46E5;
+  color: white;
+  font-weight: 600;
+}
+.flatpickr-day.inRange {
+  background: rgba(79, 70, 229, 0.1);
+  border-color: transparent;
+  box-shadow: -5px 0 0 rgba(79, 70, 229, 0.1), 5px 0 0 rgba(79, 70, 229, 0.1);
+}
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+  background: #4F46E5;
+  border-color: #4F46E5;
+  color: white;
+}
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover,
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+  color: #CBD5E1;
+}
+.flatpickr-innerContainer {
+  padding: 4px 8px 8px;
+}
+/* Alt input styling */
+input.flatpickr-input[readonly] {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.25rem;
+}
+.flatpickr-input[readonly] + .form-control[readonly] {
+  cursor: pointer;
+}
+
+/* ── Botón IA ─────────────────────────────────────────────────────────────── */
+.ia-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(139, 92, 246, 0.45), 0 0 0 0 rgba(139, 92, 246, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+.ia-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+.ia-btn:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.6), 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+.ia-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+.ia-btn:disabled,
+.ia-btn--loading {
+  opacity: 0.75;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Variante ortografía (azul-teal) */
+.ia-btn--spell {
+  background: linear-gradient(135deg, #0891b2 0%, #0e7490 50%, #155e75 100%);
+  box-shadow: 0 2px 12px rgba(8, 145, 178, 0.4), 0 0 0 0 rgba(8, 145, 178, 0.3);
+}
+.ia-btn--spell:hover:not(:disabled) {
+  box-shadow: 0 4px 20px rgba(8, 145, 178, 0.55), 0 0 0 3px rgba(8, 145, 178, 0.2);
+}
+
+/* Spinner dentro del botón IA */
+.ia-spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: ia-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes ia-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Toast IA ─────────────────────────────────────────────────────────────── */
+.ia-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #1e1b4b;
+  color: #e0e7ff;
+  border: 1px solid #4f46e5;
+  border-radius: 14px;
+  padding: 12px 16px;
+  max-width: 360px;
+  box-shadow: 0 8px 32px rgba(79,70,229,0.35);
+  transform: translateY(20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.ia-toast--visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.ia-toast--error {
+  background: #1f0a0a;
+  border-color: #ef4444;
+  box-shadow: 0 8px 32px rgba(239,68,68,0.25);
+}
+.ia-toast__icon {
+  font-size: 1.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.ia-toast__title {
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+  color: #c7d2fe;
+}
+.ia-toast__msg {
+  font-size: 0.75rem;
+  color: #a5b4fc;
+  line-height: 1.4;
+}
+.ia-toast--error .ia-toast__title { color: #fca5a5; }
+.ia-toast--error .ia-toast__msg   { color: #f87171; }

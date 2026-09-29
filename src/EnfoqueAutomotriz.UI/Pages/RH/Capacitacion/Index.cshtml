@@ -1,0 +1,189 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.RH.Capacitacion.IndexModel
+@using EnfoqueAutomotriz.Domain.RH
+@using AyudaShared = EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Capacitación";
+}
+
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-bold text-text-1">Capacitación</h2>
+</div>
+
+<partial name="_Ayuda" model="@(new AyudaShared.AyudaModel {
+    PaginaId = "rh-capacitacion",
+    Titulo = "¿Qué muestra esta pantalla?",
+    QueHace = "Catálogo de cursos de capacitación y el seguimiento de qué empleado tiene asignado cada curso, con su estatus y calificación final.",
+    Pasos = new List<AyudaShared.PasoAyuda> {
+        new(1, "Crea un curso nuevo indicando título, categoría y duración en horas."),
+        new(2, "Asigna el curso a un empleado desde la sección 'Asignaciones a empleados'."),
+        new(3, "Actualiza el estatus (Pendiente / En progreso / Completada) y captura la calificación final cuando el empleado termine el curso.")
+    },
+    Conexiones = new List<AyudaShared.ConexionAyuda> {
+        new("Desempeño Individual", "/Dashboard/Desempeno", "radar", "El % de cursos completados alimenta el eje 'Capacitación' del radar"),
+        new("Empleados", "/RH/Empleados/Index", "id-card", "Ver el directorio completo de personal")
+    }
+})" />
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-error mb-4">@Model.ErrorMessage</div>
+}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+    <div class="lg:col-span-2 card">
+        <div class="card-body">
+            <h3 class="font-semibold text-text-1 mb-3">Catálogo de cursos</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-base text-text-3 text-xs uppercase">
+                        <tr>
+                            <th class="text-left px-2.5 py-1.5">Título</th>
+                            <th class="text-left px-2.5 py-1.5">Categoría</th>
+                            <th class="text-right px-2.5 py-1.5">Duración</th>
+                            <th class="text-left px-2.5 py-1.5">Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in Model.Cursos)
+                        {
+                            <tr class="border-t border-border-ui hover:bg-base/60 transition-colors">
+                                <td class="px-2.5 py-1.5 font-medium">@c.Titulo</td>
+                                <td class="px-2.5 py-1.5"><span class="badge bg-blue-100 text-blue-700">@(c.Categoria ?? "General")</span></td>
+                                <td class="px-2.5 py-1.5 text-right">@c.DuracionHoras hrs</td>
+                                <td class="px-2.5 py-1.5 text-text-3 text-xs">@c.Descripcion</td>
+                            </tr>
+                        }
+                        @if (!Model.Cursos.Any())
+                        {
+                            <tr><td colspan="4" class="text-center py-6 text-text-3">Aún no hay cursos registrados.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h3 class="font-semibold text-text-1 mb-3">Nuevo curso</h3>
+            <form method="post" asp-page-handler="CrearCurso" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-text-2 mb-1">Título</label>
+                    <input name="Titulo" required class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-text-2 mb-1">Categoría</label>
+                    <select name="Categoria" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                        <option value="Técnica">Técnica</option>
+                        <option value="Seguridad">Seguridad</option>
+                        <option value="Servicio">Servicio</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-text-2 mb-1">Duración (horas)</label>
+                    <input name="DuracionHoras" type="number" min="1" value="8" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-text-2 mb-1">Descripción</label>
+                    <textarea name="Descripcion" rows="2" class="w-full px-3 py-2 rounded-lg border border-border-ui text-sm"></textarea>
+                </div>
+                <button type="submit" class="btn bg-primary text-white w-full">Crear curso</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-text-1">Asignaciones a empleados</h3>
+        </div>
+
+        <form method="post" asp-page-handler="Asignar" class="grid grid-cols-3 gap-2 items-end mb-4">
+            <div>
+                <label class="block text-[10px] text-text-3">Empleado</label>
+                <select name="EmpleadoId" required class="w-full h-8 px-2 rounded border border-border-ui text-xs">
+                    <option value="">Selecciona...</option>
+                    @foreach (var e in Model.Empleados)
+                    {
+                        <option value="@e.Id">@e.NombreCompleto — @e.Puesto?.Nombre</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] text-text-3">Curso</label>
+                <select name="CapacitacionId" required class="w-full h-8 px-2 rounded border border-border-ui text-xs">
+                    <option value="">Selecciona...</option>
+                    @foreach (var c in Model.Cursos)
+                    {
+                        <option value="@c.Id">@c.Titulo</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn bg-primary text-white text-xs h-8">Asignar curso</button>
+        </form>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-base text-text-3 text-xs uppercase">
+                    <tr>
+                        <th class="text-left px-2.5 py-1.5">Empleado</th>
+                        <th class="text-left px-2.5 py-1.5">Curso</th>
+                        <th class="text-left px-2.5 py-1.5">Asignado</th>
+                        <th class="text-center px-2.5 py-1.5">Estado</th>
+                        <th class="text-center px-2.5 py-1.5">Calificación</th>
+                        <th class="text-center px-2.5 py-1.5">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model.Asignaciones)
+                    {
+                        <tr class="border-t border-border-ui hover:bg-base/60 transition-colors">
+                            <td class="px-2.5 py-1.5 font-medium">@a.Empleado?.NombreCompleto</td>
+                            <td class="px-2.5 py-1.5">@a.Capacitacion?.Titulo</td>
+                            <td class="px-2.5 py-1.5 text-text-3 text-xs">@a.FechaAsignacion.ToString("dd/MM/yyyy")</td>
+                            <td class="px-2.5 py-1.5 text-center">
+                                @{
+                                    var badgeClass = a.Estado switch
+                                    {
+                                        EstadoCapacitacionEmpleado.Completada => "bg-emerald-100 text-emerald-700",
+                                        EstadoCapacitacionEmpleado.EnProgreso => "bg-amber-100 text-amber-700",
+                                        _ => "bg-gray-100 text-gray-600"
+                                    };
+                                }
+                                <span class="badge @badgeClass">@a.Estado</span>
+                            </td>
+                            <td class="px-2.5 py-1.5 text-center">@(a.CalificacionFinal.HasValue ? $"{a.CalificacionFinal}%" : "—")</td>
+                            <td class="px-2.5 py-1.5">
+                                <div class="flex items-center justify-center gap-2">
+                                    <form method="post" asp-page-handler="ActualizarEstado" class="flex items-center gap-1">
+                                        <input type="hidden" name="AsignacionId" value="@a.Id" />
+                                        <select name="Estado" class="h-7 px-1 rounded border border-border-ui text-[11px]">
+                                            @foreach (var estado in Enum.GetValues<EstadoCapacitacionEmpleado>())
+                                            {
+                                                <option value="@((int)estado)" selected="@(estado == a.Estado)">@estado</option>
+                                            }
+                                        </select>
+                                        <input name="CalificacionFinal" type="number" min="0" max="100" placeholder="%" value="@a.CalificacionFinal"
+                                               class="w-14 h-7 px-1 rounded border border-border-ui text-[11px]" />
+                                        <button type="submit" class="btn-icon-sm" title="Guardar"><i data-lucide="check" class="w-3.5 h-3.5"></i></button>
+                                    </form>
+                                    <form method="post" asp-page-handler="EliminarAsignacion" onsubmit="return confirm('¿Quitar esta asignación?');">
+                                        <input type="hidden" name="AsignacionId" value="@a.Id" />
+                                        <button type="submit" class="btn-icon-sm text-red-600" title="Eliminar"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Asignaciones.Any())
+                    {
+                        <tr><td colspan="6" class="text-center py-6 text-text-3">Aún no hay capacitaciones asignadas.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

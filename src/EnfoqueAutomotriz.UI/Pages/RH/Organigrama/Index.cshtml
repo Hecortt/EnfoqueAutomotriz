@@ -1,0 +1,38 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.RH.Organigrama.IndexModel
+@using EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Organigrama";
+}
+
+<h2 class="text-xl font-bold text-text-1 mb-4">Organigrama</h2>
+
+<partial name="_Ayuda" model="@(new AyudaModel {
+    PaginaId = "rh-organigrama",
+    Titulo = "¿Qué muestra esta pantalla?",
+    QueHace = "Árbol jerárquico de todo el personal, construido automáticamente a partir del jefe directo de cada empleado.",
+    Pasos = new List<PasoAyuda> {
+        new(1, "Cada nodo muestra nombre, puesto y departamento del empleado."),
+        new(2, "Los empleados sin jefe directo asignado aparecen como raíz del árbol."),
+        new(3, "Para modificar la jerarquía, edita el 'Jefe directo' del empleado desde la pantalla de Empleados.")
+    },
+    Conexiones = new List<ConexionAyuda> {
+        new("Empleados", "/RH/Empleados/Index", "id-card", "Editar puesto, sucursal o jefe directo")
+    }
+})" />
+
+<div class="card card-body overflow-x-auto">
+    @if (Model.Nodos.Count == 0)
+    {
+        <p class="text-text-3 text-sm text-center py-6">Aún no hay empleados registrados en el organigrama.</p>
+    }
+    else
+    {
+        <div class="flex flex-col items-center gap-6 min-w-max py-4">
+            @foreach (var raiz in Model.Nodos)
+            {
+                <partial name="_OrgNodo" model="raiz" />
+            }
+        </div>
+    }
+</div>

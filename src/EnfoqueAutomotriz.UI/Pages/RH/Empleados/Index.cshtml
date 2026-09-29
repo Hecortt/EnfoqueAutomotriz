@@ -1,0 +1,87 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.RH.Empleados.IndexModel
+@using EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Empleados";
+}
+
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-bold text-text-1">Empleados</h2>
+    <a href="/RH/Organigrama/Index" class="btn bg-white border border-border-ui">
+        <i data-lucide="network" class="w-4 h-4"></i> Ver organigrama
+    </a>
+</div>
+
+<partial name="_Ayuda" model="@(new AyudaModel {
+    PaginaId = "rh-empleados-index",
+    Titulo = "¿Qué muestra esta pantalla?",
+    QueHace = "Directorio de todo el personal del taller: puesto, departamento, sucursal y jefe directo de cada empleado.",
+    Pasos = new List<PasoAyuda> {
+        new(1, "Registra un empleado nuevo con el formulario, indicando su puesto y, si aplica, su jefe directo."),
+        new(2, "El puesto determina si el empleado aparece como 'mecánico disponible' para asignarse a órdenes de servicio."),
+        new(3, "Consulta 'Ver organigrama' para visualizar la jerarquía completa del taller.")
+    },
+    Conexiones = new List<ConexionAyuda> {
+        new("Organigrama", "/RH/Organigrama/Index", "network", "Ver la jerarquía completa"),
+        new("Capacitación", "/RH/Capacitacion/Index", "graduation-cap", "Asignar cursos a un empleado"),
+        new("Desempeño Individual", "/Dashboard/Desempeno", "radar", "Ver el radar de desempeño de un técnico")
+    }
+})" />
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="lg:col-span-2 card">
+        <table class="w-full text-sm">
+            <thead class="bg-base text-text-3 text-xs uppercase">
+                <tr>
+                    <th class="text-left px-2.5 py-1.5">Código</th>
+                    <th class="text-left px-2.5 py-1.5">Nombre</th>
+                    <th class="text-left px-2.5 py-1.5">Puesto</th>
+                    <th class="text-left px-2.5 py-1.5">Sucursal</th>
+                    <th class="text-right px-2.5 py-1.5">Salario diario</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in Model.Empleados)
+                {
+                    <tr class="border-t border-border-ui hover:bg-base/60 transition-colors">
+                        <td class="px-2.5 py-1.5 text-text-3">@e.Codigo</td>
+                        <td class="px-2.5 py-1.5 font-medium">@e.NombreCompleto</td>
+                        <td class="px-2.5 py-1.5">@e.Puesto?.Nombre</td>
+                        <td class="px-2.5 py-1.5">@e.Sucursal?.Nombre</td>
+                        <td class="px-2.5 py-1.5 text-right">@e.SalarioDiario.ToString("C2")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card card-body">
+        <h3 class="font-semibold text-text-1 mb-3">Nuevo empleado</h3>
+        <form method="post" class="space-y-2">
+            <input name="Nombres" placeholder="Nombre(s)" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <input name="ApellidoPaterno" placeholder="Apellido paterno" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <input name="ApellidoMaterno" placeholder="Apellido materno" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <select name="PuestoId" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                @foreach (var p in Model.Puestos)
+                {
+                    <option value="@p.Id">@p.Departamento?.Nombre — @p.Nombre</option>
+                }
+            </select>
+            <select name="SucursalId" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                @foreach (var s in Model.Sucursales)
+                {
+                    <option value="@s.Id">@s.Nombre</option>
+                }
+            </select>
+            <select name="JefeDirectoId" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                <option value="">— Sin jefe directo (raíz del organigrama) —</option>
+                @foreach (var e in Model.Empleados)
+                {
+                    <option value="@e.Id">@e.NombreCompleto (@e.Puesto?.Nombre)</option>
+                }
+            </select>
+            <input name="SalarioDiario" type="number" step="0.01" placeholder="Salario diario" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <button type="submit" class="btn bg-primary text-white w-full">Guardar</button>
+        </form>
+    </div>
+</div>

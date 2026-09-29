@@ -1,0 +1,425 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.Dashboard.CalidadModel
+@using EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Dashboard de Calidad";
+}
+
+<div class="mb-4">
+    <h2 class="text-xl font-bold text-text-1">Dashboard de Calidad — Cumplimiento de entregas</h2>
+    <p class="text-text-3 text-sm">Qué órdenes salieron en tiempo y cuáles se retrasaron respecto a la fecha comprometida con el cliente.</p>
+</div>
+
+<partial name="_Ayuda" model="@(new AyudaModel {
+    PaginaId = "dashboard-calidad",
+    Titulo = "¿Qué muestra esta pantalla?",
+    QueHace = "Compara la fecha de entrega comprometida con el cliente contra la fecha real de entrega, para saber qué % de tus órdenes salen a tiempo y cuáles se retrasan.",
+    Pasos = new List<PasoAyuda> {
+        new(1, "Filtra por sucursal o rango de fechas arriba si quieres acotar el análisis."),
+        new(2, "La dona y la tendencia semanal te dan un vistazo rápido del cumplimiento general."),
+        new(3, "El 'Ranking de mecánicos por retrasos' te dice quién necesita apoyo — una orden atendida en equipo suma a todos los mecánicos involucrados."),
+        new(4, "En 'Detalle de entregas' puedes buscar por folio, cliente o vehículo, y navegar con la paginación al fondo de la tabla.")
+    },
+    Conexiones = new List<ConexionAyuda> {
+        new("Desempeño Individual", "/Dashboard/Desempeno", "radar", "Ver el radar completo de un mecánico específico"),
+        new("Órdenes de Servicio", "/OrdenesServicio/Index", "wrench", "Revisar el detalle de una orden en particular")
+    },
+    Alertas = new List<string> {
+        "El retraso se calcula solo para órdenes que tienen una fecha de entrega comprometida capturada; las que no la tienen se muestran aparte como 'Sin fecha comprometida'."
+    }
+})" />
+
+<form method="get" class="card card-body mb-4 flex flex-wrap items-end gap-3">
+    <div>
+        <label class="block text-[11px] text-text-3 mb-1">Sucursal</label>
+        <select name="sucursalId" class="h-9 px-3 rounded-lg border border-border-ui text-sm">
+            <option value="">Todas las sucursales</option>
+            @foreach (var s in Model.Sucursales)
+            {
+                <option value="@s.Id" selected="@(Model.SucursalId == s.Id)">@s.Nombre</option>
+            }
+        </select>
+    </div>
+    <div>
+        <label class="block text-[11px] text-text-3 mb-1">Desde</label>
+        <input type="date" name="desde" value="@(Model.Desde?.ToString("yyyy-MM-dd"))" class="h-9 px-3 rounded-lg border border-border-ui text-sm" />
+    </div>
+    <div>
+        <label class="block text-[11px] text-text-3 mb-1">Hasta</label>
+        <input type="date" name="hasta" value="@(Model.Hasta?.ToString("yyyy-MM-dd"))" class="h-9 px-3 rounded-lg border border-border-ui text-sm" />
+    </div>
+    <div>
+        <label class="block text-[11px] text-text-3 mb-1">Mostrar</label>
+        <select name="filtro" class="h-9 px-3 rounded-lg border border-border-ui text-sm">
+            <option value="todas" selected="@(Model.SoloMostrar == "todas")">Todas las entregas</option>
+            <option value="atiempo" selected="@(Model.SoloMostrar == "atiempo")">Solo a tiempo</option>
+            <option value="retrasadas" selected="@(Model.SoloMostrar == "retrasadas")">Solo retrasadas</option>
+        </select>
+    </div>
+    <button type="submit" class="btn bg-primary text-white h-9">Filtrar</button>
+    @if (Model.SucursalId.HasValue || Model.Desde.HasValue || Model.Hasta.HasValue || Model.SoloMostrar != "todas")
+    {
+        <a href="/Dashboard/Calidad" class="btn bg-white border border-border-ui h-9 text-sm">Limpiar filtros</a>
+    }
+</form>
+
+@if (Model.Data == null)
+{
+    <div class="alert alert-error">No se pudieron cargar los indicadores de calidad.</div>
+}
+else
+{
+    var r = Model.Data.Resumen;
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+        <div class="kpi-premium stagger-in">
+            <div class="kpi-premium-icon bg-indigo-100"><i data-lucide="package-check" class="w-4 h-4 text-indigo-600"></i></div>
+            <div>
+                <p class="text-2xl font-bold text-text-1" data-count-to="@r.Total">0</p>
+                <p class="text-text-3 text-[10px] font-semibold uppercase tracking-wide">Total entregadas</p>
+            </div>
+        </div>
+        <div class="kpi-premium stagger-in">
+            <div class="kpi-premium-icon bg-emerald-100"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i></div>
+            <div>
+                <p class="text-2xl font-bold text-emerald-600" data-count-to="@r.ATiempo">0</p>
+                <p class="text-text-3 text-[10px] font-semibold uppercase tracking-wide">A tiempo</p>
+            </div>
+        </div>
+        <div class="kpi-premium stagger-in">
+            <div class="kpi-premium-icon bg-red-100"><i data-lucide="alarm-clock" class="w-4 h-4 text-red-600"></i></div>
+            <div>
+                <p class="text-2xl font-bold text-red-600" data-count-to="@r.Retrasadas">0</p>
+                <p class="text-text-3 text-[10px] font-semibold uppercase tracking-wide">Retrasadas</p>
+            </div>
+        </div>
+        <div class="kpi-premium stagger-in">
+            <div class="kpi-premium-icon bg-slate-100"><i data-lucide="help-circle" class="w-4 h-4 text-slate-500"></i></div>
+            <div>
+                <p class="text-2xl font-bold text-text-1" data-count-to="@r.SinFechaProgramada">0</p>
+                <p class="text-text-3 text-[10px] font-semibold uppercase tracking-wide">Sin fecha comprometida</p>
+            </div>
+        </div>
+        <div class="kpi-premium stagger-in">
+            <div class="kpi-premium-icon bg-blue-100"><i data-lucide="percent" class="w-4 h-4 text-blue-600"></i></div>
+            <div>
+                @if (r.PorcentajeATiempo.HasValue)
+                {
+                    <p class="text-2xl font-bold @(r.PorcentajeATiempo is >= 85 ? "text-emerald-600" : r.PorcentajeATiempo is >= 70 ? "text-amber-600" : "text-red-600")"
+                       data-count-to="@r.PorcentajeATiempo.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-decimals="1" data-suffix="%">0%</p>
+                }
+                else
+                {
+                    <p class="text-2xl font-bold text-text-3">Sin datos</p>
+                }
+                <p class="text-text-3 text-[10px] font-semibold uppercase tracking-wide">% a tiempo</p>
+            </div>
+        </div>
+        <div class="kpi-premium stagger-in">
+            <div class="kpi-premium-icon bg-amber-100"><i data-lucide="hourglass" class="w-4 h-4 text-amber-600"></i></div>
+            <div>
+                @if (r.PromedioRetrasoHoras.HasValue)
+                {
+                    <p class="text-2xl font-bold text-text-1" data-count-to="@Math.Round(r.PromedioRetrasoHoras.Value / 24, 1).ToString(System.Globalization.CultureInfo.InvariantCulture)" data-decimals="1" data-suffix=" días">0 días</p>
+                }
+                else
+                {
+                    <p class="text-2xl font-bold text-text-3">—</p>
+                }
+                <p class="text-text-3 text-[10px] font-semibold uppercase tracking-wide">Retraso promedio</p>
+                <p class="text-[10px] text-text-3">Solo de las órdenes retrasadas</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <div class="chart-card stagger-in">
+            <h3 class="font-semibold text-text-1 mb-1 flex items-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4 text-primary"></i> Distribución de cumplimiento</h3>
+            <canvas id="chartCumplimiento" height="200"></canvas>
+            <div class="flex items-center justify-center gap-3 mt-2 text-[11px] text-text-3 flex-wrap">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#10B981"></span>A tiempo</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#EF4444"></span>Retrasadas</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full inline-block" style="background:#94A3B8"></span>Sin fecha</span>
+            </div>
+        </div>
+        <div class="chart-card stagger-in">
+            <h3 class="font-semibold text-text-1 mb-3 flex items-center gap-2"><i data-lucide="line-chart" class="w-4 h-4 text-primary"></i> Tendencia de cumplimiento por semana</h3>
+            @if (Model.Data.TendenciaSemanal.Any())
+            {
+                <canvas id="chartTendenciaSemanal" height="200"></canvas>
+            }
+            else
+            {
+                <p class="text-sm text-text-3 text-center py-16">No hay suficientes semanas con datos para mostrar la tendencia.</p>
+            }
+        </div>
+        <div class="chart-card stagger-in">
+            <h3 class="font-semibold text-text-1 mb-3 flex items-center gap-2"><i data-lucide="bar-chart-3" class="w-4 h-4 text-primary"></i> Cumplimiento por sucursal</h3>
+            @if (Model.Data.PorSucursal.Any())
+            {
+                <canvas id="chartPorSucursal" height="200"></canvas>
+            }
+            else
+            {
+                <p class="text-sm text-text-3 text-center py-16">No hay datos por sucursal.</p>
+            }
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <div class="chart-card stagger-in">
+            <h3 class="font-semibold text-text-1 mb-3 flex items-center gap-2"><i data-lucide="bar-chart-2" class="w-4 h-4 text-primary"></i> Magnitud del retraso (órdenes tardías)</h3>
+            @if (Model.Data.HistogramaRetraso.Sum(h => h.Cantidad) > 0)
+            {
+                <canvas id="chartHistograma" height="180"></canvas>
+            }
+            else
+            {
+                <p class="text-sm text-text-3 text-center py-10">No hay órdenes retrasadas en el periodo seleccionado. 🎉</p>
+            }
+        </div>
+        <div class="card card-body stagger-in">
+            <h3 class="font-semibold text-text-1 mb-1">Ranking de mecánicos por retrasos</h3>
+            <p class="text-xs text-text-3 mb-2">Una orden puede sumar a varios mecánicos si fue atendida por un equipo.</p>
+            <div class="overflow-y-auto" style="max-height: 260px;">
+                <table class="w-full text-sm">
+                    <thead class="bg-base text-text-3 text-xs uppercase sticky top-0">
+                        <tr>
+                            <th class="text-left px-2.5 py-1.5">Mecánico</th>
+                            <th class="text-right px-2.5 py-1.5">Órdenes</th>
+                            <th class="text-right px-2.5 py-1.5">Retrasos</th>
+                            <th class="text-right px-2.5 py-1.5">% retraso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in Model.Data.RankingMecanicos.Take(10))
+                        {
+                            <tr class="border-t border-border-ui hover:bg-base/60 transition-colors">
+                                <td class="px-2.5 py-1.5">@m.Nombre</td>
+                                <td class="px-2.5 py-1.5 text-right">@m.TotalOrdenes</td>
+                                <td class="px-2.5 py-1.5 text-right font-medium @(m.Retrasos > 0 ? "text-red-600" : "text-text-3")">@m.Retrasos</td>
+                                <td class="px-2.5 py-1.5 text-right">
+                                    <span class="badge @(m.PorcentajeRetraso >= 30 ? "bg-red-100 text-red-700" : m.PorcentajeRetraso >= 10 ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700")">
+                                        @m.PorcentajeRetraso%
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Data.RankingMecanicos.Any())
+                        {
+                            <tr><td colspan="4" class="text-center py-6 text-text-3">Sin mecánicos asignados en las órdenes del periodo.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-body stagger-in">
+        <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+            <h3 class="font-semibold text-text-1">Detalle de entregas <span class="text-text-3 font-normal text-sm">(@Model.Data.Entregas.Count)</span></h3>
+            <div class="relative">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-text-3 absolute left-2.5 top-1/2 -translate-y-1/2"></i>
+                <input type="text" id="buscarEntrega" placeholder="Buscar folio, cliente o vehículo..."
+                       class="h-9 pl-8 pr-3 rounded-lg border border-border-ui text-sm w-64" />
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm" id="tablaEntregas">
+                <thead class="bg-base text-text-3 text-xs uppercase">
+                    <tr>
+                        <th class="text-left px-2.5 py-1.5">Folio</th>
+                        <th class="text-left px-2.5 py-1.5">Cliente / Vehículo</th>
+                        <th class="text-left px-2.5 py-1.5">Sucursal</th>
+                        <th class="text-left px-2.5 py-1.5">Ingreso</th>
+                        <th class="text-left px-2.5 py-1.5">Comprometida</th>
+                        <th class="text-left px-2.5 py-1.5">Entrega real</th>
+                        <th class="text-right px-2.5 py-1.5">Duración</th>
+                        <th class="text-center px-2.5 py-1.5">Estatus</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model.Data.Entregas)
+                    {
+                        <tr class="border-t border-border-ui hover:bg-base/60 transition-colors fila-entrega" data-busqueda="@($"{e.Folio} {e.Cliente} {e.Vehiculo} {e.Sucursal}".ToLowerInvariant())">
+                            <td class="px-2.5 py-1.5 font-medium"><a href="/OrdenesServicio/Detail/@e.Id" class="text-primary hover:underline">@e.Folio</a></td>
+                            <td class="px-2.5 py-1.5">
+                                <p class="text-text-1">@e.Cliente</p>
+                                <p class="text-text-3 text-xs">@e.Vehiculo</p>
+                            </td>
+                            <td class="px-2.5 py-1.5 text-text-3">@e.Sucursal</td>
+                            <td class="px-2.5 py-1.5 text-text-3">@e.FechaRecepcion.ToString("dd/MM/yy HH:mm")</td>
+                            <td class="px-2.5 py-1.5 text-text-3">@(e.FechaEntregaProgramada?.ToString("dd/MM/yy HH:mm") ?? "No definida")</td>
+                            <td class="px-2.5 py-1.5 text-text-3">@e.FechaEntrega.ToString("dd/MM/yy HH:mm")</td>
+                            <td class="px-2.5 py-1.5 text-right">@Math.Round(e.DuracionHoras / 24, 1) días</td>
+                            <td class="px-2.5 py-1.5 text-center">
+                                @if (e.EntregadoATiempo == true)
+                                {
+                                    <span class="badge bg-emerald-100 text-emerald-700">✓ A tiempo</span>
+                                }
+                                else if (e.EntregadoATiempo == false)
+                                {
+                                    <span class="badge bg-red-100 text-red-700" title="@Math.Abs(Math.Round(e.DiferenciaHoras!.Value / 24, 1)) días de retraso">
+                                        ⚠ Retraso @Math.Abs(Math.Round(e.DiferenciaHoras!.Value / 24, 1)) días
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-gray-100 text-gray-600">Sin fecha comprometida</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Data.Entregas.Any())
+                    {
+                        <tr><td colspan="8" class="text-center py-6 text-text-3">No hay entregas que coincidan con los filtros seleccionados.</td></tr>
+                    }
+                </tbody>
+            </table>
+            <p id="sinResultadosBusqueda" class="text-center py-6 text-text-3 text-sm hidden">Ningún resultado coincide con tu búsqueda.</p>
+        </div>
+
+        @if (Model.Data.Entregas.Count > 15)
+        {
+            <div class="flex items-center justify-between mt-3 pt-3 border-t border-border-ui text-sm" id="paginacionEntregas">
+                <span class="text-text-3 text-xs">Página <span id="paginaActual">1</span> de <span id="totalPaginas">1</span></span>
+                <div class="flex gap-2">
+                    <button type="button" id="btnPaginaAnterior" class="btn bg-white border border-border-ui text-xs h-8 px-3" disabled>
+                        <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Anterior
+                    </button>
+                    <button type="button" id="btnPaginaSiguiente" class="btn bg-white border border-border-ui text-xs h-8 px-3">
+                        Siguiente <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="~/js/chart-theme.js" asp-append-version="true"></script>
+    <script>
+        const T = window.ChartTheme;
+
+        new Chart(document.getElementById('chartCumplimiento'), {
+            type: 'doughnut',
+            data: {
+                labels: ['A tiempo', 'Retrasadas', 'Sin fecha comprometida'],
+                datasets: [{
+                    data: [@r.ATiempo, @r.Retrasadas, @r.SinFechaProgramada],
+                    backgroundColor: ['#10B981', '#EF4444', '#94A3B8'],
+                    hoverOffset: 10, borderWidth: 3, borderColor: '#fff'
+                }]
+            },
+            options: T.doughnutOptions({ plugins: { legend: { display: false } } }),
+            plugins: [T.centerTextPlugin('@(r.PorcentajeATiempo.HasValue ? $"{r.PorcentajeATiempo.Value}%" : "—")', 'a tiempo')]
+        });
+
+        const tendenciaSemanal = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.TendenciaSemanal, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+        if (tendenciaSemanal.length > 0) {
+            const ctxSemanal = document.getElementById('chartTendenciaSemanal');
+            new Chart(ctxSemanal, {
+                type: 'line',
+                data: {
+                    labels: tendenciaSemanal.map(t => t.semana),
+                    datasets: [T.lineDataset('% a tiempo', tendenciaSemanal.map(t => t.porcentaje), T.colors.primary, ctxSemanal)]
+                },
+                options: T.lineOptions({
+                    plugins: { legend: { display: false } },
+                    scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(148,163,184,0.15)' } }, x: { grid: { display: false } } }
+                })
+            });
+        }
+
+        const porSucursalCalidad = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.PorSucursal, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+        if (porSucursalCalidad.length > 0) {
+            new Chart(document.getElementById('chartPorSucursal'), {
+                type: 'bar',
+                data: {
+                    labels: porSucursalCalidad.map(s => s.sucursal),
+                    datasets: [{
+                        label: '% a tiempo',
+                        data: porSucursalCalidad.map(s => s.porcentaje),
+                        backgroundColor: porSucursalCalidad.map(s => s.porcentaje >= 85 ? T.colors.emerald : s.porcentaje >= 70 ? T.colors.amber : T.colors.red),
+                        maxBarThickness: 46
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(148,163,184,0.15)' } }, x: { grid: { display: false } } }
+                }
+            });
+        }
+
+        const histogramaRetraso = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Data.HistogramaRetraso, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
+        if (histogramaRetraso.reduce((a, h) => a + h.cantidad, 0) > 0) {
+            new Chart(document.getElementById('chartHistograma'), {
+                type: 'bar',
+                data: {
+                    labels: histogramaRetraso.map(h => h.rango),
+                    datasets: [{
+                        label: 'Órdenes retrasadas',
+                        data: histogramaRetraso.map(h => h.cantidad),
+                        backgroundColor: 'rgba(239,68,68,0.75)',
+                        hoverBackgroundColor: '#EF4444',
+                        maxBarThickness: 46
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(148,163,184,0.15)' } } } }
+            });
+        }
+
+        // ── Tabla "Detalle de entregas": búsqueda + paginación client-side ────
+        (function () {
+            const PAGE_SIZE = 15;
+            const filasTodas = Array.from(document.querySelectorAll('#tablaEntregas .fila-entrega'));
+            const inputBuscar = document.getElementById('buscarEntrega');
+            const sinResultados = document.getElementById('sinResultadosBusqueda');
+            const paginacion = document.getElementById('paginacionEntregas');
+            const btnAnterior = document.getElementById('btnPaginaAnterior');
+            const btnSiguiente = document.getElementById('btnPaginaSiguiente');
+            const paginaActualEl = document.getElementById('paginaActual');
+            const totalPaginasEl = document.getElementById('totalPaginas');
+
+            let paginaActual = 1;
+
+            function filasVisiblesPorBusqueda() {
+                const q = (inputBuscar?.value || '').trim().toLowerCase();
+                return filasTodas.filter(f => !q || f.dataset.busqueda.includes(q));
+            }
+
+            function render() {
+                const filtradas = filasVisiblesPorBusqueda();
+                filasTodas.forEach(f => f.style.display = 'none');
+
+                if (filtradas.length === 0) {
+                    if (sinResultados) sinResultados.classList.remove('hidden');
+                } else {
+                    if (sinResultados) sinResultados.classList.add('hidden');
+                }
+
+                const totalPaginas = Math.max(1, Math.ceil(filtradas.length / PAGE_SIZE));
+                if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+
+                const inicio = (paginaActual - 1) * PAGE_SIZE;
+                const visibles = filtradas.slice(inicio, inicio + PAGE_SIZE);
+                visibles.forEach(f => f.style.display = '');
+
+                if (paginaActualEl) paginaActualEl.textContent = paginaActual;
+                if (totalPaginasEl) totalPaginasEl.textContent = totalPaginas;
+                if (btnAnterior) btnAnterior.disabled = paginaActual <= 1;
+                if (btnSiguiente) btnSiguiente.disabled = paginaActual >= totalPaginas;
+
+                // Oculta el bloque de paginación por completo si con la búsqueda ya cabe todo en una página
+                if (paginacion) paginacion.style.display = filtradas.length > PAGE_SIZE ? '' : 'none';
+            }
+
+            if (inputBuscar) {
+                inputBuscar.addEventListener('input', function () { paginaActual = 1; render(); });
+            }
+            if (btnAnterior) btnAnterior.addEventListener('click', function () { paginaActual--; render(); window.scrollTo({ top: document.getElementById('tablaEntregas').offsetTop - 100, behavior: 'smooth' }); });
+            if (btnSiguiente) btnSiguiente.addEventListener('click', function () { paginaActual++; render(); window.scrollTo({ top: document.getElementById('tablaEntregas').offsetTop - 100, behavior: 'smooth' }); });
+
+            if (filasTodas.length > 0) render();
+        })();
+    </script>
+}

@@ -1,0 +1,65 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.Promociones.IndexModel
+@{
+    ViewData["Title"] = "Promociones";
+}
+
+<h2 class="text-xl font-bold text-text-1 mb-4">Promociones</h2>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="lg:col-span-2 card">
+        <table class="w-full text-sm">
+            <thead class="bg-base text-text-3 text-xs uppercase">
+                <tr>
+                    <th class="text-left px-2.5 py-1.5">Nombre</th>
+                    <th class="text-left px-2.5 py-1.5">Descuento</th>
+                    <th class="text-left px-2.5 py-1.5">Vigencia</th>
+                    <th class="text-left px-2.5 py-1.5">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model.Promociones)
+                {
+                    <tr class="border-t border-border-ui hover:bg-base/60 transition-colors">
+                        <td class="px-2.5 py-1.5 font-medium">@p.Nombre</td>
+                        <td class="px-2.5 py-1.5">@(p.TipoDescuento == EnfoqueAutomotriz.Domain.Promociones.TipoDescuentoPromocion.Porcentaje ? $"{p.Valor}%" : p.Valor.ToString("C2"))</td>
+                        <td class="px-2.5 py-1.5 text-text-3">@p.FechaInicio.ToString("dd/MM/yy") - @p.FechaFin.ToString("dd/MM/yy")</td>
+                        <td class="px-2.5 py-1.5">
+                            @if (p.Vigente)
+                            {
+                                <span class="badge bg-emerald-100 text-emerald-700">Vigente</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-slate-100 text-slate-700">Inactiva</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card card-body">
+        <h3 class="font-semibold text-text-1 mb-3">Nueva promoción</h3>
+        <form method="post" class="space-y-2">
+            <input name="Nombre" placeholder="Nombre" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <input name="Descripcion" placeholder="Descripción" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <select name="TipoDescuento" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                <option value="1">Porcentaje (%)</option>
+                <option value="2">Monto fijo ($)</option>
+            </select>
+            <input name="Valor" type="number" step="0.01" placeholder="Valor" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <div class="grid grid-cols-2 gap-2">
+                <input name="FechaInicio" type="date" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+                <input name="FechaFin" type="date" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <select name="AplicaA" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm">
+                <option value="1">Todos los clientes</option>
+                <option value="2">Clientes recurrentes</option>
+                <option value="3">Primera visita</option>
+            </select>
+            <button type="submit" class="btn bg-primary text-white w-full">Guardar</button>
+        </form>
+    </div>
+</div>

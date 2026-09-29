@@ -1,0 +1,45 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-bold text-text-1">Usuarios</h2>
+</div>
+
+@if (Model.ErrorMessage != null)
+{
+    <div class="p-4 rounded-xl bg-red-50 text-red-700 text-sm mb-4">@Model.ErrorMessage</div>
+}
+
+<div class="card">
+    <table class="w-full text-sm">
+        <thead class="bg-base text-text-3 text-xs uppercase">
+            <tr>
+                <th class="text-left px-2.5 py-1.5">Nombre</th>
+                <th class="text-left px-2.5 py-1.5">Correo</th>
+                <th class="text-left px-2.5 py-1.5">Rol</th>
+                <th class="text-left px-2.5 py-1.5">Activo</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Usuarios is { Count: > 0 })
+            {
+                foreach (var u in Model.Usuarios)
+                {
+                    <tr class="border-t border-border-ui hover:bg-base/60 transition-colors">
+                        <td class="px-2.5 py-1.5">@u.NombreCompleto</td>
+                        <td class="px-2.5 py-1.5">@u.Email</td>
+                        <td class="px-2.5 py-1.5">@EnfoqueAutomotriz.Utility.SD.GetRoleName(u.Rol)</td>
+                        <td class="px-2.5 py-1.5">@(u.Activo ? "Sí" : "No")</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="4" class="px-4 py-6 text-center text-text-3">Sin usuarios registrados.</td></tr>
+            }
+        </tbody>
+    </table>
+</div>

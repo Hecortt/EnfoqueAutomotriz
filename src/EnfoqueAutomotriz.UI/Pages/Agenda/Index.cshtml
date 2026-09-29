@@ -1,0 +1,115 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.Agenda.IndexModel
+@using EnfoqueAutomotriz.Domain.Ordenes
+@using EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Agenda del Taller";
+    var actual = new DateTime(Model.Anio, Model.Mes, 1);
+    var mesAnterior = actual.AddMonths(-1);
+    var mesSiguiente = actual.AddMonths(1);
+    var hoy = DateTime.Now;
+
+    string LinkMes(DateTime fecha) =>
+        $"/Agenda/Index?anio={fecha.Year}&mes={fecha.Month}" +
+        (Model.SucursalId.HasValue ? $"&sucursalId={Model.SucursalId}" : "") +
+        (Model.Estado.HasValue ? $"&estado={(int)Model.Estado.Value}" : "");
+}
+
+<div class="mb-4 flex items-center justify-between flex-wrap gap-2">
+    <div>
+        <h2 class="text-xl font-bold text-text-1">Agenda del Taller</h2>
+        <p class="text-text-3 text-sm">Calendario de todos los servicios: ingresos, entregas comprometidas y entregas realizadas.</p>
+    </div>
+</div>
+
+<partial name="_Ayuda" model="@(new AyudaModel {
+    PaginaId = "agenda-index",
+    Titulo = "¿Qué muestra esta pantalla?",
+    QueHace = "Un calendario con la carga de trabajo del taller: cuándo entraron los vehículos, cuándo se comprometió su entrega y cuándo salieron realmente.",
+    Pasos = new List<PasoAyuda> {
+        new(1, "Los puntos grises son ingresos (recepción del vehículo)."),
+        new(2, "Los puntos azules son entregas comprometidas todavía pendientes; si ya se pasó la fecha y sigue sin entregarse, se pinta en rojo."),
+        new(3, "Los puntos verdes son entregas ya realizadas (a tiempo o no)."),
+        new(4, "Haz clic en cualquier evento para ir directo al detalle de esa orden."),
+        new(5, "Filtra por sucursal o por estatus arriba, y navega entre meses con las flechas.")
+    },
+    Conexiones = new List<ConexionAyuda> {
+        new("Órdenes de Servicio", "/OrdenesServicio/Index", "wrench", "Ver el listado completo y crear nuevas órdenes"),
+        new("Dashboard de Calidad", "/Dashboard/Calidad", "gauge", "Analizar cumplimiento de entregas a tiempo")
+    }
+})" />
+
+<form method="get" class="card card-body mb-4 flex flex-wrap items-end gap-3">
+    <input type="hidden" name="anio" value="@Model.Anio" />
+    <input type="hidden" name="mes" value="@Model.Mes" />
+    <div>
+        <label class="block text-[11px] text-text-3 mb-1">Sucursal</label>
+        <select name="sucursalId" class="h-9 px-3 rounded-lg border border-border-ui text-sm" onchange="this.form.submit()">
+            <option value="">Todas las sucursales</option>
+            @foreach (var s in Model.Sucursales)
+            {
+                <option value="@s.Id" selected="@(Model.SucursalId == s.Id)">@s.Nombre</option>
+            }
+        </select>
+    </div>
+    <div>
+        <label class="block text-[11px] text-text-3 mb-1">Estatus</label>
+        <select name="estado" class="h-9 px-3 rounded-lg border border-border-ui text-sm" onchange="this.form.submit()">
+            <option value="">Todos los estatus</option>
+            @foreach (var e in Enum.GetValues<EstadoOrdenServicio>())
+            {
+                <option value="@((int)e)" selected="@(Model.Estado == e)">@e</option>
+            }
+        </select>
+    </div>
+    @if (Model.SucursalId.HasValue || Model.Estado.HasValue)
+    {
+        <a href="/Agenda/Index?anio=@Model.Anio&mes=@Model.Mes" class="btn bg-white border border-border-ui h-9 text-sm">Limpiar filtros</a>
+    }
+
+    <div class="flex items-center gap-1 ml-auto">
+        <a href="@LinkMes(mesAnterior)" class="btn bg-white border border-border-ui h-9 w-9 justify-center">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+        </a>
+        <span class="font-semibold text-text-1 capitalize min-w-[140px] text-center">@Model.NombreMes</span>
+        <a href="@LinkMes(mesSiguiente)" class="btn bg-white border border-border-ui h-9 w-9 justify-center">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </a>
+        <a href="@LinkMes(hoy)" class="btn bg-primary text-white h-9 text-sm ml-1">Hoy</a>
+    </div>
+</form>
+
+<div class="card card-body mb-4">
+    <div class="flex flex-wrap items-center gap-4 text-xs text-text-3 mb-3">
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#64748B"></span> Ingreso</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#3B82F6"></span> Entrega programada (pendiente)</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#EF4444"></span> Entrega vencida (sin entregar)</span>
+        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:#10B981"></span> Entregado</span>
+    </div>
+    <div id="calendar"></div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var eventos = @Html.Raw(Model.EventosJson);
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                initialDate: '@actual.ToString("yyyy-MM-dd")',
+                locale: 'es',
+                firstDay: 1,
+                headerToolbar: { left: '', center: '', right: 'dayGridMonth,listMonth' },
+                height: 'auto',
+                events: eventos,
+                dayMaxEvents: 3,
+                eventDidMount: function (info) {
+                    var props = info.event.extendedProps;
+                    info.el.title = props.folio + ' — ' + props.cliente + ' — ' + props.vehiculo;
+                }
+            });
+            calendar.render();
+        });
+    </script>
+}

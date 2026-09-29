@@ -1,0 +1,36 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.Admin.Sucursales.IndexModel
+@{
+    ViewData["Title"] = "Sucursales";
+}
+
+<h2 class="text-xl font-bold text-text-1 mb-4">Sucursales</h2>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="lg:col-span-2 card">
+        <table class="w-full text-sm">
+            <thead class="bg-base text-text-3 text-xs uppercase">
+                <tr><th class="text-left px-2.5 py-1.5">Nombre</th><th class="text-left px-2.5 py-1.5">Dirección</th><th class="text-left px-2.5 py-1.5">Teléfono</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model.Sucursales)
+                {
+                    <tr class="border-t border-border-ui hover:bg-base/60 transition-colors">
+                        <td class="px-2.5 py-1.5 font-medium">@s.Nombre</td>
+                        <td class="px-2.5 py-1.5 text-text-3">@s.Direccion</td>
+                        <td class="px-2.5 py-1.5">@s.Telefono</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="card card-body">
+        <h3 class="font-semibold text-text-1 mb-3">Nueva sucursal</h3>
+        <form method="post" class="space-y-2">
+            <input name="Nombre" placeholder="Nombre" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <input name="Direccion" placeholder="Dirección" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <input name="Telefono" placeholder="Teléfono" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <button type="submit" class="btn bg-primary text-white w-full">Guardar</button>
+        </form>
+    </div>
+</div>

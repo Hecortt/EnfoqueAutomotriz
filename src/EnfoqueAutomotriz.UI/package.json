@@ -1,0 +1,12 @@
+{
+  "name": "enfoqueautomotriz-ui",
+  "version": "1.0.0",
+  "scripts": {
+    "css:build": "npx @tailwindcss/cli -i ./wwwroot/css/input.css -o ./wwwroot/css/app.css --minify",
+    "css:watch": "npx @tailwindcss/cli -i ./wwwroot/css/input.css -o ./wwwroot/css/app.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.11",
+    "tailwindcss": "^4.1.11"
+  }
+}

@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EnfoqueAutomotriz.Api/EnfoqueAutomotriz.Api.csproj" />
+    <Project Path="src/EnfoqueAutomotriz.Domain/EnfoqueAutomotriz.Domain.csproj" />
+    <Project Path="src/EnfoqueAutomotriz.UI/EnfoqueAutomotriz.UI.csproj" />
+    <Project Path="src/EnfoqueAutomotriz.Utility/EnfoqueAutomotriz.Utility.csproj" />
+  </Folder>
+</Solution>

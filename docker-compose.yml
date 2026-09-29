@@ -1,0 +1,36 @@
+# ============================================================
+# EnfoqueAutomotriz — Docker Compose
+# El contenedor "app" se conecta al servidor PostgreSQL COMPARTIDO
+# con Obra360 (fa00219vmx), no se levanta un contenedor "db" local.
+# ============================================================
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "7101:7101"
+      - "7102:7102"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS_API: http://+:7101
+      ASPNETCORE_URLS_UI: http://+:7102
+      DatabaseSettings__Host: ${DB_HOST:-fa00219vmx}
+      DatabaseSettings__Port: ${DB_PORT:-5432}
+      DatabaseSettings__Database: ${DB_NAME:-EnfoqueAutomotriz}
+      DatabaseSettings__Username: ${DB_USER:-devteam_prod}
+      DatabaseSettings__Password: ${DB_PASSWORD:?Defina DB_PASSWORD en .env}
+      ApiSettings__Secret: ${JWT_SECRET:-ChangeThisToA64CharSecretKeyForProductionDeployment2026!enfoqueautomotriz}
+      ApiSettings__Issuer: enfoqueautomotriz.api
+      ApiSettings__Audience: enfoqueautomotriz.clients
+      ApiSettings__BaseUrl: http://localhost:7101
+      TenantSettings__DefaultSlug: ${DEFAULT_TENANT:-}
+      Cors__Origins__0: http://localhost:7102
+      Cors__AllowedDomains__0: .enfoqueautomotriz.app
+    volumes:
+      - uploads:/app/api/wwwroot/uploads
+
+volumes:
+  uploads:

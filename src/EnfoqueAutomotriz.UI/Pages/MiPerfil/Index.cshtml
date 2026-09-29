@@ -1,0 +1,33 @@
+@page
+@model MiPerfilModel
+@{
+    ViewData["Title"] = "Mi Perfil";
+}
+
+<h2 class="text-xl font-bold text-text-1 mb-4">Mi Perfil</h2>
+
+@if (Model.Usuario != null)
+{
+    <div class="card card-body max-w-lg space-y-3">
+        <div>
+            <p class="text-xs text-text-3 uppercase tracking-wide">Nombre</p>
+            <p class="text-sm font-medium text-text-1">@Model.Usuario.NombreCompleto</p>
+        </div>
+        <div>
+            <p class="text-xs text-text-3 uppercase tracking-wide">Correo</p>
+            <p class="text-sm font-medium text-text-1">@Model.Usuario.Email</p>
+        </div>
+        <div>
+            <p class="text-xs text-text-3 uppercase tracking-wide">Rol</p>
+            <p class="text-sm font-medium text-text-1">@EnfoqueAutomotriz.Utility.SD.GetRoleName(Model.Usuario.Rol)</p>
+        </div>
+        <div>
+            <p class="text-xs text-text-3 uppercase tracking-wide">Último acceso</p>
+            <p class="text-sm font-medium text-text-1">@(Model.Usuario.UltimoAcceso?.ToString("g") ?? "—")</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-error">@Model.ErrorMessage</div>
+}

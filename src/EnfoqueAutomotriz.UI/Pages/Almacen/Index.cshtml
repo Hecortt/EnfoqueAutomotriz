@@ -1,0 +1,94 @@
+@page
+@model EnfoqueAutomotriz.UI.Pages.Almacen.IndexModel
+@using EnfoqueAutomotriz.Domain.Almacen
+@using EnfoqueAutomotriz.UI.Pages.Shared
+@{
+    ViewData["Title"] = "Almacén";
+}
+
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-bold text-text-1">Almacén — Refacciones</h2>
+</div>
+
+<partial name="_Ayuda" model="@(new AyudaModel {
+    PaginaId = "almacen-index",
+    Titulo = "¿Qué muestra esta pantalla?",
+    QueHace = "Catálogo de refacciones del inventario con un semáforo de stock: crítico (agotado o casi), por reordenar, y normal.",
+    Pasos = new List<PasoAyuda> {
+        new(1, "Revisa primero las tarjetas de 'Críticas' y 'Por reordenar' — son las que necesitan atención inmediata."),
+        new(2, "La tabla está ordenada mostrando primero las refacciones en peor nivel de stock."),
+        new(3, "Registra una refacción nueva con el formulario de la derecha (SKU, costo, precio de venta y umbrales de stock).")
+    },
+    Conexiones = new List<ConexionAyuda> {
+        new("Solicitudes de Refacciones", "/Almacen/Solicitudes", "clipboard-list", "Ver qué refacciones se han pedido para órdenes activas"),
+        new("Compras", "/Compras/Index", "shopping-cart", "Generar una orden de compra a proveedor")
+    }
+})" />
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+    <div class="card card-body">
+        <p class="text-text-3 text-xs uppercase">Críticas (agotadas)</p>
+        <p class="text-2xl font-bold text-red-600">@Model.Refacciones.Count(r => r.Nivel == NivelStock.Critico)</p>
+    </div>
+    <div class="card card-body">
+        <p class="text-text-3 text-xs uppercase">Por reordenar</p>
+        <p class="text-2xl font-bold text-amber-600">@Model.Refacciones.Count(r => r.Nivel == NivelStock.Reorden)</p>
+    </div>
+    <div class="card card-body">
+        <p class="text-text-3 text-xs uppercase">Normal</p>
+        <p class="text-2xl font-bold text-emerald-600">@Model.Refacciones.Count(r => r.Nivel == NivelStock.Normal)</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div class="lg:col-span-2 card">
+        <table class="w-full text-sm">
+            <thead class="bg-base text-text-3 text-xs uppercase">
+                <tr>
+                    <th class="text-left px-2.5 py-1.5">Refacción</th>
+                    <th class="text-left px-2.5 py-1.5">SKU</th>
+                    <th class="text-right px-2.5 py-1.5">Stock</th>
+                    <th class="text-right px-2.5 py-1.5">Reorden</th>
+                    <th class="text-left px-2.5 py-1.5">Nivel</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.Refacciones.OrderBy(r => r.Nivel == NivelStock.Critico ? 0 : r.Nivel == NivelStock.Reorden ? 1 : 2).ThenBy(r => r.Nombre))
+                {
+                    var (bg, label) = r.Nivel switch
+                    {
+                        NivelStock.Critico => ("bg-red-100 text-red-700", "Crítico"),
+                        NivelStock.Reorden => ("bg-amber-100 text-amber-700", "Reordenar"),
+                        _ => ("bg-emerald-100 text-emerald-700", "Normal")
+                    };
+                    <tr class="border-t border-border-ui hover:bg-base/60 transition-colors">
+                        <td class="px-2.5 py-1.5 font-medium">@r.Nombre</td>
+                        <td class="px-2.5 py-1.5 text-text-3">@r.Sku</td>
+                        <td class="px-2.5 py-1.5 text-right">@r.StockActual</td>
+                        <td class="px-2.5 py-1.5 text-right">@r.PuntoReorden</td>
+                        <td class="px-2.5 py-1.5"><span class="badge @bg">@label</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card card-body">
+        <h3 class="font-semibold text-text-1 mb-3">Nueva refacción</h3>
+        <form method="post" class="space-y-2">
+            <input placeholder="Nombre" name="Nombre" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <input placeholder="SKU" name="Sku" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <input placeholder="Categoría" name="Categoria" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            <div class="grid grid-cols-2 gap-2">
+                <input placeholder="Costo" name="Costo" type="number" step="0.01" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+                <input placeholder="Precio venta" name="PrecioVenta" type="number" step="0.01" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                <input placeholder="Stock" name="StockActual" type="number" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+                <input placeholder="Mínimo" name="StockMinimo" type="number" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+                <input placeholder="Reorden" name="PuntoReorden" type="number" class="w-full h-9 px-3 rounded-lg border border-border-ui text-sm" />
+            </div>
+            <button type="submit" class="btn bg-primary text-white w-full">Guardar</button>
+        </form>
+    </div>
+</div>
